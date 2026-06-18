@@ -1,1054 +1,1033 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>フードゴット・根源</title>
-  <style>
-    :root{
-      --bg1:#fff8ef;
-      --bg2:#fde9c8;
-      --ink:#4a2f20;
-      --gold:#f5c85c;
-      --gold-deep:#d89a16;
-      --rare:#58a6ff;
-      --ur:#d36cff;
-      --secret:#ffd700;
-      --board:#f6dfb4;
-      --wood:#b98143;
-      --danger:#ff6b6b;
-      --ok:#77c56b;
-      --panel:rgba(255,255,255,0.8);
-      --shadow:0 8px 24px rgba(0,0,0,0.18);
-      --panel2:rgba(255,255,255,0.92);
-      --line:rgba(90,50,15,0.18);
-    }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-    html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;font-family:"Hiragino Sans","Yu Gothic","Meiryo",sans-serif;color:var(--ink);background:radial-gradient(circle at 50% 20%, #fff6d4 0, #ffefbf 20%, transparent 35%),linear-gradient(180deg,var(--bg1),var(--bg2))}
-    button{font:inherit}
-    #app{width:100%;height:100%;position:relative;overflow:hidden}
-    .hidden{display:none!important}
-    .screen{position:absolute;inset:0;width:100%;height:100%}
-    .title-screen{
-      display:flex;flex-direction:column;justify-content:center;align-items:center;
-      padding:24px;background:radial-gradient(circle at center, rgba(255,255,220,0.95), rgba(255,230,180,0.95)),linear-gradient(180deg,#fffaf0,#f7dfb9);
-    }
-    .title-logo{
-      font-size:clamp(28px,7vw,48px);font-weight:900;text-align:center;line-height:1.15;color:#7a3d00;
-      text-shadow:0 3px 0 #fff,0 6px 18px rgba(255,180,0,0.45);margin-bottom:14px;
-    }
-    .title-sub{font-size:14px;opacity:0.85;margin-bottom:26px;text-align:center}
-    .menu-buttons{width:min(92vw,360px);display:flex;flex-direction:column;gap:12px}
-    .btn{
-      border:none;border-radius:18px;padding:14px 18px;font-size:16px;font-weight:800;color:#4b2d1c;
-      background:linear-gradient(180deg,#fff3cb,#f5c85c);box-shadow:0 5px 0 #d39f2c,0 8px 18px rgba(0,0,0,0.15);cursor:pointer;
-      transition:transform 0.08s ease,box-shadow 0.08s ease,filter 0.15s ease;
-    }
-    .btn:active,.btn.pressed{transform:translateY(4px) scale(0.98);box-shadow:0 1px 0 #d39f2c,0 3px 10px rgba(0,0,0,0.12)}
-    .btn.secondary{background:linear-gradient(180deg,#fff,#e8e8e8);box-shadow:0 5px 0 #bdbdbd,0 8px 18px rgba(0,0,0,0.12)}
-    .game-screen{display:grid;grid-template-rows:auto auto 1fr auto;width:100%;height:100%;position:relative}
-    .top-bar{padding:10px 12px 6px;display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:10}
-    .stat-card{background:rgba(255,255,255,0.78);border:2px solid rgba(255,255,255,0.55);border-radius:16px;box-shadow:var(--shadow);padding:10px 12px;backdrop-filter:blur(5px)}
-    .stat-title{font-size:12px;opacity:0.8;margin-bottom:4px}
-    .stat-value{font-size:18px;font-weight:900}
-    .sub-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:0 12px 8px;position:relative;z-index:10}
-    .sub-pill{padding:8px 10px;border-radius:999px;background:rgba(255,255,255,0.8);text-align:center;font-size:12px;font-weight:700;box-shadow:var(--shadow)}
-    .main-area{position:relative;overflow:hidden;padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px}
-    .tap-area{
-      position:relative;border-radius:28px;flex:0 0 24%;min-height:130px;
-      background:radial-gradient(circle at center, rgba(255,255,255,0.92), rgba(255,235,190,0.95)),linear-gradient(180deg,#fff7dd,#ffe7a2);
-      box-shadow:inset 0 -10px 30px rgba(255,200,70,0.18),var(--shadow);border:2px solid rgba(255,255,255,0.7);
-      display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden;
-    }
-    .tap-core{
-      width:120px;height:120px;border-radius:50%;
-      background:radial-gradient(circle at 35% 30%, #fffef6 0, #ffe89f 45%, #f8c93c 70%, #e5a412 100%);
-      box-shadow:0 0 30px rgba(255,230,120,0.7),0 0 70px rgba(255,220,70,0.35);
-      display:flex;align-items:center;justify-content:center;font-size:46px;transform:scale(1);transition:transform 0.08s ease;
-    }
-    .tap-core.tapped{transform:scale(0.92)}
-    .tap-label{position:absolute;bottom:10px;font-weight:900;font-size:16px;color:#8b4e00;text-shadow:0 2px 0 rgba(255,255,255,0.8)}
-    .board-area{
-      position:relative;flex:1;border-radius:24px;background:radial-gradient(circle at center, rgba(255,255,255,0.35), transparent 60%),linear-gradient(180deg,#f2deb5,#e9ca92);
-      box-shadow:inset 0 0 0 4px rgba(255,255,255,0.35),var(--shadow);overflow:hidden;touch-action:none;
-    }
-    .board-title{position:absolute;top:8px;left:12px;font-size:13px;font-weight:900;color:rgba(90,50,15,0.85);z-index:2}
-    .god{
-      position:absolute;width:78px;height:90px;border-radius:20px;background:rgba(255,255,255,0.68);box-shadow:0 8px 18px rgba(0,0,0,0.18);
-      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:4px;overflow:visible;transition:transform 0.12s ease,box-shadow 0.12s ease,opacity 0.12s ease;
-    }
-    .god.dragging{opacity:0.72;transform:scale(1.08);z-index:999}
-    .god.highlight{box-shadow:0 0 0 4px rgba(255,255,255,0.9),0 0 24px rgba(255,220,90,0.95),0 0 44px rgba(255,200,0,0.55)}
-    .god-secret{box-shadow:0 0 18px rgba(255,240,120,0.65),0 0 40px rgba(255,210,50,0.45),0 8px 18px rgba(0,0,0,0.22)}
-    .god-emoji{
-      width:58px;height:58px;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:38px;line-height:1;
-    }
-    .god-name{font-size:10px;font-weight:800;text-align:center;padding:2px 4px 0;line-height:1.1}
-    .god-rarity{font-size:9px;font-weight:900;margin-top:1px}
-    .rarity-common{color:#666}
-    .rarity-rare{color:#3978ff}
-    .rarity-ultrarare{color:#b236f2}
-    .rarity-secret{color:#b88b00}
-    .aura{position:absolute;inset:-10px;border-radius:24px;opacity:0.28;filter:blur(8px);pointer-events:none}
-    .synergy-line{
-      position:absolute;height:4px;background:linear-gradient(90deg, rgba(255,255,255,0.2), rgba(255,235,130,0.95), rgba(255,255,255,0.2));
-      transform-origin:left center;border-radius:999px;box-shadow:0 0 12px rgba(255,230,120,0.8);pointer-events:none;z-index:1;opacity:0.9;
-    }
-    .synergy-label{
-      position:absolute;padding:6px 10px;background:rgba(255,253,234,0.96);border:2px solid rgba(255,220,120,0.9);border-radius:999px;
-      font-size:11px;font-weight:900;box-shadow:var(--shadow);pointer-events:none;z-index:50;animation:synergyFade 1.2s ease forwards;
-    }
-    @keyframes synergyFade{0%{transform:translateY(8px) scale(0.8);opacity:0}20%{transform:translateY(0) scale(1);opacity:1}80%{transform:translateY(-6px) scale(1);opacity:1}100%{transform:translateY(-16px) scale(0.94);opacity:0}}
-    .bottom-ui{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:8px 10px 10px;position:relative;z-index:10}
-    .gacha-card,.action-card{background:rgba(255,255,255,0.8);border-radius:18px;box-shadow:var(--shadow);padding:8px;min-height:118px;display:flex;flex-direction:column;justify-content:space-between}
-    .gacha-cover-wrap{display:grid;grid-template-columns:78px 1fr;gap:8px;align-items:center}
-    .gacha-cover{width:78px;height:78px;border-radius:14px;object-fit:cover;background:rgba(255,255,255,0.4);box-shadow:inset 0 0 0 2px rgba(255,255,255,0.5)}
-    .gacha-meta{display:flex;flex-direction:column;gap:4px}
-    .gacha-title{font-size:13px;font-weight:900}
-    .gacha-desc{font-size:11px;opacity:0.8;line-height:1.3}
-    .gacha-cost{font-size:13px;font-weight:900;color:#8b2d00}
-    .tiny-row{display:flex;gap:6px;flex-wrap:wrap}
-    .tiny-btn{flex:1;min-width:0;font-size:12px;padding:10px 8px;border-radius:14px}
-    .floating-number{
-      position:absolute;font-weight:900;pointer-events:none;z-index:40;text-shadow:0 2px 0 rgba(255,255,255,0.9);animation:floatUp 0.85s ease-out forwards;white-space:nowrap;
-    }
-    @keyframes floatUp{0%{transform:translate(-50%,0) scale(0.8);opacity:0}15%{transform:translate(-50%,-8px) scale(1.08);opacity:1}100%{transform:translate(-50%,-52px) scale(1);opacity:0}}
-    .flash-overlay,.rare-overlay,.merge-beam,.sunburst,.screen-dim{position:absolute;inset:0;pointer-events:none}
-    .flash-overlay{background:rgba(255,255,255,0);z-index:60}
-    .flash-overlay.active{animation:flashPulse 0.35s ease}
-    @keyframes flashPulse{0%{background:rgba(255,255,255,0)}30%{background:rgba(255,255,255,0.65)}100%{background:rgba(255,255,255,0)}}
-    .rare-overlay.active{background:linear-gradient(120deg,transparent 0,rgba(255,255,255,0.0) 35%,rgba(255,255,255,0.7) 50%,rgba(255,255,255,0.0) 65%,transparent 100%);animation:rareSweep 0.6s ease;z-index:62}
-    @keyframes rareSweep{0%{transform:translateX(-100%);opacity:0.2}30%{opacity:1}100%{transform:translateX(100%);opacity:0}}
-    .merge-beam{z-index:58;display:none;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,245,180,0.95),rgba(255,255,255,0));opacity:0}
-    .merge-beam.active{display:block;animation:beamFlash 0.55s ease}
-    @keyframes beamFlash{0%{opacity:0}20%{opacity:0.95}100%{opacity:0}}
-    .sunburst{z-index:57;display:none;opacity:0;background:radial-gradient(circle at center, rgba(255,249,190,0.9) 0, rgba(255,232,122,0.55) 18%, rgba(255,215,0,0.14) 35%, transparent 58%)}
-    .sunburst.active{display:block;animation:sunburstPulse 0.8s ease}
-    @keyframes sunburstPulse{0%{opacity:0;transform:scale(0.6)}35%{opacity:1;transform:scale(1.05)}100%{opacity:0;transform:scale(1.4)}}
-    .shake{animation:screenShake 0.3s ease}
-    @keyframes screenShake{
-      0%{transform:translate(0,0)}20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}
-      60%{transform:translate(-2px,1px)}80%{transform:translate(2px,-1px)}100%{transform:translate(0,0)}
-    }
-    .popup-layer{position:absolute;inset:0;z-index:100;pointer-events:none}
-    .screen-dim{background:rgba(48,26,8,0.45);opacity:0;transition:opacity 0.2s ease}
-    .screen-dim.show{opacity:1;pointer-events:auto}
-    .popup{
-      position:absolute;left:50%;top:50%;transform:translate(-50%,100vh) scale(0.9);width:min(92vw,420px);border-radius:24px;
-      box-shadow:0 18px 40px rgba(0,0,0,0.3);opacity:0;transition:transform 0.28s ease,opacity 0.28s ease;pointer-events:auto;overflow:hidden;
-    }
-    .popup.show{transform:translate(-50%,-50%) scale(1);opacity:1}
-    .wood-popup{background:linear-gradient(180deg,#f7e4bb,#ebcc90);border:8px solid #b57a3f}
-    .popup-header{padding:14px 16px 8px;font-size:20px;font-weight:900;text-align:center;color:#6d3600}
-    .popup-body{padding:8px 14px 16px}
-    .merge-spotlight{
-      position:relative;height:220px;border-radius:18px;background:radial-gradient(circle at center, rgba(255,255,255,0.95), rgba(255,233,150,0.85), rgba(255,204,80,0.38), transparent 75%);overflow:hidden;
-    }
-    .merge-name{
-      position:absolute;left:50%;bottom:14px;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(255,255,255,0.92);
-      font-weight:900;font-size:18px;box-shadow:var(--shadow);white-space:nowrap;
-    }
-    .merge-result-emoji,.merge-result-img{
-      position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(0.5);width:132px;height:132px;object-fit:contain;opacity:0;
-      animation:revealMergeResult 0.55s ease forwards;
-    }
-    .merge-result-emoji{display:flex;align-items:center;justify-content:center;font-size:94px}
-    @keyframes revealMergeResult{0%{transform:translate(-50%,-50%) scale(0.4);opacity:0}50%{transform:translate(-50%,-50%) scale(1.14);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
-    .reward-text{text-align:center;font-size:22px;font-weight:900;color:#8a2500;text-shadow:0 3px 0 rgba(255,255,255,0.9);margin:8px 0 14px;animation:rewardPop 0.35s ease}
-    @keyframes rewardPop{0%{transform:scale(0.8);opacity:0}100%{transform:scale(1);opacity:1}}
-    .detail-grid{display:grid;grid-template-columns:92px 1fr;gap:12px;align-items:start}
-    .detail-img,.detail-emoji{width:92px;height:92px;border-radius:16px;background:rgba(255,255,255,0.4)}
-    .detail-img{object-fit:contain}
-    .detail-emoji{display:flex;align-items:center;justify-content:center;font-size:64px}
-    .detail-list{font-size:13px;line-height:1.7}
-    .notice-text,.challenge-text{font-size:14px;line-height:1.7;background:rgba(255,255,255,0.55);padding:12px;border-radius:14px}
-    .footer-actions{display:flex;gap:8px;margin-top:14px}
-    .footer-actions .btn{flex:1;font-size:14px;padding:12px 10px}
-    .mini-note{font-size:11px;opacity:0.74;margin-top:4px;line-height:1.4}
-    .glow-big{animation:glowBig 0.5s ease}
-    @keyframes glowBig{0%{filter:brightness(1)}50%{filter:brightness(1.45)}100%{filter:brightness(1)}}
-    .text-gold{color:#a66200}
-    .text-secret{color:#8e6a00;text-shadow:0 0 8px rgba(255,220,50,0.7)}
-    .longpress-ring{
-      position:absolute;width:64px;height:64px;border:4px solid rgba(255,255,255,0.9);border-top-color:rgba(255,220,70,1);border-radius:50%;
-      pointer-events:none;z-index:70;animation:spin 0.7s linear infinite;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .small-tag{font-size:11px;opacity:0.8}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>フードゴット・神威インフレ プロトタイプ設計</title>
+<style>
+body{font-family:system-ui,sans-serif;line-height:1.7;padding:24px;max-width:1200px;margin:0 auto;background:#fffaf2;color:#2a1e12}
+pre{white-space:pre-wrap;word-break:break-word;background:#fff;border:1px solid #eadcc8;border-radius:12px;padding:16px;overflow:auto}
+code{font-family:ui-monospace,Consolas,monospace}
+h1,h2,h3{color:#6b3d16}
+table{border-collapse:collapse;width:100%;margin:16px 0;background:#fff}
+th,td{border:1px solid #e2d3bf;padding:10px;vertical-align:top}
+th{background:#f8ead7}
+.note{background:#fff4dc;border-left:4px solid #f0b35f;padding:12px 14px;border-radius:8px;margin:12px 0}
+</style>
 </head>
 <body>
-<div id="app">
-  <div id="flashOverlay" class="flash-overlay"></div>
-  <div id="rareOverlay" class="rare-overlay"></div>
-  <div id="mergeBeam" class="merge-beam"></div>
-  <div id="sunburst" class="sunburst"></div>
 
-  <section id="titleScreen" class="screen title-screen">
-    <div class="title-logo">フードゴット・根源</div>
-    <div class="title-sub">タップでうまみを集め、根源を重ねて神格へ。</div>
-    <div class="menu-buttons">
-      <button id="startBtn" class="btn">はじめる</button>
-      <button id="noticeBtn" class="btn secondary">お知らせ</button>
-      <button id="challengeBtn" class="btn secondary">キャラ一覧</button>
-      <button id="resetBtn" class="btn secondary">データ初期化</button>
-    </div>
-  </section>
+<h1>フードゴット・神威インフレ</h1>
 
-  <section id="gameScreen" class="screen game-screen hidden">
-    <div class="top-bar">
-      <div class="stat-card">
-        <div class="stat-title">フードゴット資金</div>
-        <div id="currencyValue" class="stat-value">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">所持金</div>
-        <div id="yenValue" class="stat-value">¥0</div>
-      </div>
-    </div>
-
-    <div class="sub-bar">
-      <div class="sub-pill">生産: <span id="productionValue">0</span>/s</div>
-      <div class="sub-pill">タップ: <span id="tapValue">1</span></div>
-      <div class="sub-pill">倍率: <span id="synergyValue">x1.00</span></div>
-    </div>
-
-    <div class="main-area">
-      <div id="tapArea" class="tap-area">
-        <div id="tapCore" class="tap-core">🍚</div>
-        <div class="tap-label">タップでうまみ獲得</div>
-      </div>
-
-      <div id="boardArea" class="board-area">
-        <div class="board-title">配置エリア（ドラッグで移動・重ねると進化）</div>
-      </div>
-    </div>
-
-    <div class="bottom-ui">
-      <div class="gacha-card">
-        <div class="gacha-cover-wrap">
-          <div style="width:78px;height:78px;border-radius:14px;background:linear-gradient(180deg,#fff,#f2d28f);display:flex;align-items:center;justify-content:center;font-size:36px;">🎲</div>
-          <div class="gacha-meta">
-            <div id="gachaTitle" class="gacha-title">通常ガチャ</div>
-            <div id="gachaDesc" class="gacha-desc">資金で引ける通常召喚。</div>
-            <div id="gachaCost" class="gacha-cost">¥1,000</div>
-          </div>
-        </div>
-        <div class="tiny-row">
-          <button id="summonBtn" class="btn tiny-btn">召喚</button>
-          <button id="saveBtn" class="btn secondary tiny-btn">保存</button>
-        </div>
-      </div>
-
-      <div class="action-card">
-        <div class="gacha-meta">
-          <div class="gacha-title">シークレット案内</div>
-          <div class="gacha-desc">根源3組み合わせでシークレットS、KB到達後は時間帯でZガチャが出現。</div>
-          <div class="mini-note">6:00〜8:00 / 17:00〜20:00 に表示。</div>
-        </div>
-        <div class="tiny-row">
-          <button id="backTitleBtn" class="btn secondary tiny-btn">タイトルへ</button>
-          <button id="todayGodBtn" class="btn tiny-btn">本日特典</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <div class="popup-layer">
-    <div id="screenDim" class="screen-dim"></div>
-
-    <div id="mergePopup" class="popup wood-popup hidden">
-      <div class="popup-header">進化</div>
-      <div class="popup-body">
-        <div class="reward-text">合体成功！</div>
-        <div class="merge-spotlight">
-          <img id="mergeResultImg" class="merge-result-img hidden" src="" alt="merge result">
-          <div id="mergeResultEmoji" class="merge-result-emoji hidden"></div>
-          <div id="mergeResultName" class="merge-name"></div>
-        </div>
-        <div class="footer-actions">
-          <button id="mergeCloseBtn" class="btn">閉じる</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="detailPopup" class="popup wood-popup hidden">
-      <div class="popup-header">キャラ詳細</div>
-      <div class="popup-body">
-        <div class="detail-grid">
-          <img id="detailImg" class="detail-img hidden" src="" alt="detail image">
-          <div id="detailEmoji" class="detail-emoji hidden"></div>
-          <div id="detailList" class="detail-list"></div>
-        </div>
-        <div class="footer-actions">
-          <button id="detailCloseBtn" class="btn">閉じる</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="noticePopup" class="popup wood-popup hidden">
-      <div class="popup-header">お知らせ</div>
-      <div class="popup-body">
-        <div class="notice-text" id="noticeText"></div>
-        <div class="footer-actions">
-          <button id="noticeCloseBtn" class="btn">閉じる</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="challengePopup" class="popup wood-popup hidden">
-      <div class="popup-header">キャラ一覧</div>
-      <div class="popup-body">
-        <div id="challengeText" class="challenge-text"></div>
-        <div class="footer-actions">
-          <button id="challengeCloseBtn" class="btn">閉じる</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="loginBoard" class="login-board hidden">
-      <div class="board-header">ログインボーナス</div>
-      <div class="board-content">
-        <div class="bonus-box">
-          <div id="loginRewardText" class="reward-text"></div>
-          <div id="loginRewardDetail" class="notice-text" style="font-size:13px;margin:0;"></div>
-          <div id="loginStamp" class="stamp">GET</div>
-        </div>
-        <div class="footer-actions" style="margin-top:12px;">
-          <button id="loginCloseBtn" class="btn">閉じる</button>
-        </div>
-      </div>
-    </div>
-  </div>
+<div class="note">
+このHTMLは、Unityへ展開するための完全設計書兼コード束です。  
+Unityでは <code>Assets/Scripts</code> に各 C# ファイルとして分割してください。
 </div>
 
-<script>
-class Util {
-  static clamp(v,min,max){ return Math.max(min,Math.min(max,v)); }
-  static dist(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return Math.sqrt(dx*dx+dy*dy); }
-  static formatNumber(num){
-    if(!isFinite(num)) return "0";
-    const units = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc","No","De"];
-    let value = Math.abs(Math.floor(num));
-    let unit = 0;
-    while(value >= 1000 && unit < units.length-1){ value /= 1000; unit++; }
-    const sign = num < 0 ? "-" : "";
-    const fixed = value >= 100 ? 0 : value >= 10 ? 1 : 2;
-    return sign + value.toFixed(fixed) + units[unit];
-  }
-  static formatYen(num){ return "¥" + Math.floor(num).toLocaleString("ja-JP"); }
-  static todayKey(){
-    const d = new Date();
-    return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
-  }
-  static nowHour(){ return new Date().getHours(); }
-  static randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
-  static chance(weightedList){
-    const total = weightedList.reduce((a,b)=>a+b.weight,0);
-    let roll = Math.random()*total;
-    for(const item of weightedList){ roll -= item.weight; if(roll <= 0) return item; }
-    return weightedList[weightedList.length-1];
-  }
-  static sanitizeKey(str){ return String(str).toLowerCase().replace(/[^a-z0-9]+/g,""); }
+<h2>1. 全体構成</h2>
+<p>タップで旨味獲得、召喚、配置、ドラッグマージ、自動生産、シナジー、ログインボーナス、セーブ/ロードを備えた短時間インフレ型プロトタイプです。</p>
+
+<h2>2. シーン設計</h2>
+<table>
+<tr><th>Scene</th><th>内容</th></tr>
+<tr><td>TitleScene</td><td>タイトル、開始、ガチャ入口、滑り込みUI</td></tr>
+<tr><td>MainGameScene</td><td>メインゲーム、タップ、配置、マージ、シナジー、生産</td></tr>
+<tr><td>PopupOverlay</td><td>各種ポップアップ管理用Canvas</td></tr>
+</table>
+
+<h2>3. データ設計</h2>
+<pre><code>// GodData.cs
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public enum GodRarity { Common, Rare, UltraRare, Secret, SecretS, SecretZ }
+public enum GodRole { Tapper, Producer, Support, Burst, Fusion }
+public enum EffectKind { None, Glow, Float, DivineBeam, SunBurst, ScreenFlash, ParticleRain }
+
+[CreateAssetMenu(menuName = "FoodGod/God Data")]
+public class GodData : ScriptableObject
+{
+    public string id;
+    public string displayName;
+    public string englishKey;
+    public GodRarity rarity;
+    public int rank;
+    public long baseProduction;
+    public long tapBonus;
+    public List&lt;string&gt; synergyTags = new List&lt;string&gt;();
+    public string nextEvolutionId;
+    public string illustrationKey;
+    public string emojiFallback;
+    public GodRole role;
+    public EffectKind rareSpawnEffect;
+    public EffectKind auraEffect;
+    public Sprite icon;
 }
-class SaveManager {
-  static get KEY(){ return "foodgod_origin_save_v1"; }
-  static save(data){ localStorage.setItem(this.KEY, JSON.stringify(data)); }
-  static load(){ try{ const raw=localStorage.getItem(this.KEY); return raw ? JSON.parse(raw) : null; }catch(e){ return null; } }
-  static clear(){ localStorage.removeItem(this.KEY); }
-  static calcOfflineReward(lastTime, productionPerSec){
-    if(!lastTime) return 0;
-    const now = Date.now();
-    const deltaSec = Math.max(0,(now-lastTime)/1000);
-    const capped = Math.min(deltaSec, 60*60*4);
-    return Math.floor(productionPerSec * capped * 0.35);
-  }
+</code></pre>
+
+<pre><code>// SynergyData.cs
+using System.Collections.Generic;
+using UnityEngine;
+
+[CreateAssetMenu(menuName = "FoodGod/Synergy Data")]
+public class SynergyData : ScriptableObject
+{
+    public string synergyName;
+    public List&lt;string&gt; requiredTags = new List&lt;string&gt;();
+    public float bonusMultiplier = 1.2f;
+    public string label;
+    public Color labelColor = Color.yellow;
 }
-class AudioManager {
-  constructor(){ this.ctx=null; }
-  ensure(){ if(!this.ctx){ const Ctx = window.AudioContext || window.webkitAudioContext; if(Ctx) this.ctx = new Ctx(); } }
-  beep(freq=440,duration=0.06,type="sine",gainValue=0.03){
-    this.ensure(); if(!this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = type; osc.frequency.value = freq; gain.gain.value = gainValue;
-    osc.connect(gain); gain.connect(this.ctx.destination);
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-    osc.stop(this.ctx.currentTime + duration);
-  }
-  tap(){ this.beep(700,0.05,"triangle",0.025); }
-  place(){ this.beep(520,0.08,"sine",0.03); }
-  merge(){ this.beep(880,0.12,"sawtooth",0.035); setTimeout(()=>this.beep(1040,0.18,"triangle",0.028),50); }
-  rare(){ this.beep(1100,0.15,"triangle",0.04); setTimeout(()=>this.beep(1380,0.22,"sine",0.03),80); }
-  secret(){ this.beep(330,0.18,"sawtooth",0.05); setTimeout(()=>this.beep(660,0.22,"triangle",0.04),100); setTimeout(()=>this.beep(1320,0.3,"sine",0.03),180); }
-  button(){ this.beep(430,0.05,"square",0.02); }
-  stamp(){ this.beep(220,0.08,"square",0.04); }
+</code></pre>
+
+<pre><code>// SaveData.cs
+using System;
+using System.Collections.Generic;
+
+[Serializable]
+public class SaveData
+{
+    public string currency = "50000";
+    public string umami = "0";
+    public long lastLoginUnix;
+    public long lastSaveUnix;
+    public bool claimedToday;
+    public List&lt;string&gt; ownedGodIds = new List&lt;string&gt;();
+    public List&lt;string&gt; boardGodIds = new List&lt;string&gt;();
 }
-class PopupController {
-  constructor(dim){ this.dim=dim; }
-  show(popup){ this.dim.classList.add("show"); popup.classList.remove("hidden"); requestAnimationFrame(()=>popup.classList.add("show")); }
-  hide(popup){ popup.classList.remove("show"); setTimeout(()=>popup.classList.add("hidden"),220); if(!document.querySelectorAll(".popup.show").length && document.getElementById("loginBoard").classList.contains("hidden")) this.dim.classList.remove("show"); }
-  showDim(){ this.dim.classList.add("show"); }
-  hideDimIfPossible(){
-    const anyPopupOpen = document.querySelectorAll(".popup.show").length > 0;
-    const loginBoard = document.getElementById("loginBoard");
-    const loginOpen = !loginBoard.classList.contains("hidden");
-    if(!anyPopupOpen && !loginOpen) this.dim.classList.remove("show");
-  }
-}
-class ButtonFeedback {
-  static bindAll(audio){
-    document.querySelectorAll(".btn").forEach(btn=>{
-      btn.addEventListener("pointerdown",()=>{ btn.classList.add("pressed"); audio.button(); });
-      const clear = ()=>btn.classList.remove("pressed");
-      btn.addEventListener("pointerup",clear);
-      btn.addEventListener("pointercancel",clear);
-      btn.addEventListener("pointerleave",clear);
-    });
-  }
-}
-class RareEffectController {
-  constructor(audio){
-    this.audio=audio;
-    this.flashOverlay=document.getElementById("flashOverlay");
-    this.rareOverlay=document.getElementById("rareOverlay");
-    this.mergeBeam=document.getElementById("mergeBeam");
-    this.sunburst=document.getElementById("sunburst");
-    this.app=document.getElementById("app");
-  }
-  flash(){ this.flashOverlay.classList.remove("active"); void this.flashOverlay.offsetWidth; this.flashOverlay.classList.add("active"); }
-  rareSweep(){ this.rareOverlay.classList.remove("active"); void this.rareOverlay.offsetWidth; this.rareOverlay.classList.add("active"); }
-  mergeBurst(){ this.mergeBeam.classList.remove("active"); this.sunburst.classList.remove("active"); void this.mergeBeam.offsetWidth; this.mergeBeam.classList.add("active"); this.sunburst.classList.add("active"); this.app.classList.add("shake"); setTimeout(()=>this.app.classList.remove("shake"),320); }
-  playSummon(rarity){
-    if(rarity==="UltraRare"){ this.rareSweep(); this.audio.rare(); }
-    else if(rarity==="Secret"){ this.flash(); setTimeout(()=>this.flash(),90); this.rareSweep(); this.audio.secret(); }
-    else if(rarity==="Rare"){ this.audio.rare(); }
-  }
-  playMerge(rarity){ this.mergeBurst(); if(rarity==="Secret") this.audio.secret(); else this.audio.merge(); }
-}
-class GodDatabase {
-  constructor(){
-    this.gods = this.buildGods();
-    this.map = new Map(this.gods.map(g=>[g.id,g]));
-  }
-  get(id){ return this.map.get(id); }
-  getAll(){ return this.gods; }
-  buildGods(){
-    const G = (id,name,attrs,role,evolve,emoji,rarity="Secret",rank=3,base=10,tap=1,aura="#ffd15c") => ({id,name,imageKey:null,rarity,rank,baseProduction:base,tapBonus:tap,synergyTags:attrs,evolveTo:evolve,emojiFallback:emoji,auraColor:aura,role});
-    return [
-      G("ss_ramen_genesis","ラーメン創世神",["secret_s","noodle","origin"],"ラーメン系最上位","ss_food_ark","🍜"),
-      G("ss_sushi_emperor","寿司天帝神",["secret_s","sea","imperial"],"和食終盤主軸","ss_food_ark","🍣"),
-      G("ss_gyoza_celestial","餃子星皇神",["secret_s","chinese","celestial"],"中華最終系","ss_food_ark","🥟"),
-      G("ss_matcha_eden","抹茶楽園神",["secret_s","tea","paradise"],"茶系極致","ss_food_ark","🍵"),
-      G("ss_bread_cosmos","パン宇宙神",["secret_s","wheat","cosmic"],"小麦系最終","ss_food_ark","🍞"),
-      G("ss_coffee_singularity","珈琲特異神",["secret_s","coffee","singularity"],"コーヒー系最終","ss_food_ark","☕"),
-      G("ss_parfait_oracle","聖杯パフェ神",["secret_s","sweet","oracle"],"甘味系超上位","ss_food_ark","🍨"),
-      G("ss_steak_judgment","ステーキ審判神",["secret_s","royal","judgment"],"覇王系上位","ss_food_ark","🥩"),
-      G("ss_pizza_nova","星炎ピザ神",["secret_s","flame","nova"],"炎系超倍率","ss_food_ark","🍕"),
-      G("ss_fruit_aurora","果実極光神",["secret_s","fruit","aurora"],"祝福バフ最上位","ss_food_ark","🍉"),
-      G("ss_udon_void","虚無うどん神",["secret_s","noodle","void"],"麺系特殊倍率","ss_food_ark","🍜"),
-      G("ss_tempura_halo","天ぷら光輪神",["secret_s","japanese","holy"],"和食聖属性","ss_food_ark","🍤"),
-      G("ss_tako_leviathan","蛸海皇神",["secret_s","sea","abyss"],"海系終盤","ss_food_ark","🐙"),
-      G("ss_curry_cataclysm","終末カレー神",["secret_s","spice","catastrophe"],"爆発生産型","ss_food_ark","🍛"),
-      G("ss_ice_miracle","氷菓奇跡神",["secret_s","ice","miracle"],"タップ超特化","ss_food_ark","🍧"),
-      G("ss_mochi_eternity","永久餅神",["secret_s","rice","eternity"],"長期スケール型","ss_food_ark","🍡"),
-      G("ss_choco_seraph","聖巧チョコ神",["secret_s","sweet","seraph"],"聖夜系上位","ss_food_ark","🍫"),
-      G("ss_unagi_kingdom","鰻王界神",["secret_s","feast","kingdom"],"高生産特化","ss_food_ark","🐟"),
-      G("ss_kaiseki_requiem","懐石鎮魂神",["secret_s","japanese","requiem"],"複合シナジー型","ss_food_ark","🍱"),
-      G("ss_burger_nebula","星雲バーガー神",["secret_s","wheat","nebula"],"汎用終盤アタッカー","ss_food_ark","🍔"),
-      G("ss_pancake_solaris","太陽パンケーキ神",["secret_s","morning","solar"],"朝食系最終","ss_food_ark","🥞"),
-      G("ss_tiramisu_messiah","ティラミスメシア神",["secret_s","coffee","messiah"],"甘苦シナジー核","ss_food_ark","🍰"),
-      G("ss_kakigori_zero","零度かき氷神",["secret_s","ice","zero"],"氷系最高位","ss_food_ark","🧊"),
-      G("ss_takoyaki_meteor","流星たこ焼き神",["secret_s","festival","meteor"],"フェス系最上位","ss_food_ark","🐙"),
-      G("ss_hotpot_heaven","神鍋天界神",["secret_s","feast","heaven"],"鍋系終盤","ss_food_ark","🍲"),
-      G("ss_melon_pulse","極メロン神",["secret_s","fruit","pulse"],"フルーツ高回転型","ss_food_ark","🍈"),
-      G("ss_soda_revelation","啓示ソーダ神",["secret_s","drink","revelation"],"ドリンク支援王","ss_food_ark","🥤"),
-      G("ss_omelette_crown","王冠オム神",["secret_s","egg","crown"],"卵系支配者","ss_food_ark","🍳"),
-      G("ss_soup_dimension","次元スープ神",["secret_s","warmth","dimension"],"支援と増幅","ss_food_ark","🍜"),
-      G("ss_crab_abyssal","深淵蟹神",["secret_s","sea","abyss"],"海系高級最終","ss_food_ark","🦀"),
-      G("ss_daifuku_moon","月神大福",["secret_s","sweet","moon"],"和菓子超上位","ss_food_ark","🟠"),
-      G("ss_macaron_empress","マカロン女帝神",["secret_s","royal","sweet"],"高級菓子女帝","ss_food_ark","🟣"),
-      G("ss_gelato_starlight","星光ジェラート神",["secret_s","ice","starlight"],"冷菓終盤型","ss_food_ark","🍨"),
-      G("ss_bento_constellation","星座弁当神",["secret_s","japanese","constellation"],"全方位シナジー","ss_food_ark","🍱"),
-      G("ss_tea_yggdrasil","神樹茶神",["secret_s","tea","worldtree"],"茶系バッファー","ss_food_ark","🍵"),
-      G("ss_noodle_apocalypse","麺終焉神",["secret_s","noodle","apocalypse"],"麺カテゴリ総帥","ss_food_ark","🍜"),
-      G("ss_sushi_akasha","寿司アカシャ神",["secret_s","sea","akasha"],"知識系神格","ss_food_ark","🍣"),
-      G("ss_coffee_blacksun","黒陽珈琲神",["secret_s","coffee","blacksun"],"ダーク高倍率","ss_food_ark","☕"),
-      G("ss_rice_origin_lord","米根源王神",["secret_s","rice","origin"],"米系覇者","ss_food_ark","🍚"),
-      G("ss_food_ark","フードゴット・聖櫃",["secret_s","all","origin"],"全系統の頂点",null,"🗝️","Secret",5,10000,500,"#ffe680"),
-      G("limited_sakura_dango","桜だんご神",["spring","japanese","sweet"],"春イベント向け和菓子生産","sakura_dango_kamui","🍡","Rare",2,42,3),
-      G("limited_hanami_bento","花見弁当神",["spring","japanese","feast"],"バランス型生産","hanami_bento_kamui","🍱","Rare",2,44,4),
-      G("limited_ichigo_daifuku","いちご大福神",["spring","sweet","blessing"],"タップ寄り","ichigo_daifuku_kamui","🍓","Rare",2,38,4),
-      G("limited_spring_matcha","春抹茶神",["spring","tea","japanese"],"和シナジー補助","spring_matcha_kamui","🍵","Rare",2,36,3),
-      G("limited_kashiwa_mochi","柏餅神",["spring","japanese","rice"],"安定生産型","kashiwa_mochi_kamui","🍃","Rare",2,40,3),
-      G("limited_summer_kakigori","かき氷神",["summer","sweet","ice"],"タップ特化","kakigori_kamui","🍧","Rare",2,46,5),
-      G("limited_mango_parfait","マンゴーパフェ神",["summer","sweet","fruit"],"高タップ補正","mango_parfait_kamui","🍨","Rare",2,45,4),
-      G("limited_unagi_matsuri","うなぎ祭神",["summer","japanese","feast"],"高生産","unagi_matsuri_kamui","🐟","Rare",2,48,4),
-      G("limited_ramune_spirit","ラムネ神霊",["summer","drink","festival"],"軽快な中盤向け","ramune_spirit_kamui","🫧","Rare",2,34,3),
-      G("limited_takoyaki_festival","祭りたこ焼き神",["summer","festival","flour"],"近接シナジー役","takoyaki_festival_kamui","🐙","Rare",2,41,3),
-      G("limited_tsukimi_burger","月見バーガー神",["autumn","moon","wheat"],"モーニング系派生","tsukimi_burger_kamui","🍔","Rare",2,42,4),
-      G("limited_sanma_kami","秋刀魚神",["autumn","sea","japanese"],"和食シナジー主軸","sanma_kamui","🐟","Rare",2,43,4),
-      G("limited_marron_montblanc","栗モンブラン神",["autumn","sweet","royal"],"高級菓子系","marron_montblanc_kamui","🌰","Rare",2,44,4),
-      G("limited_imo_sweets","芋スイーツ神",["autumn","sweet","blessing"],"後半タップ型","imo_sweets_kamui","🍠","Rare",2,40,4),
-      G("limited_kinoko_hotpot","きのこ鍋神",["autumn","feast","japanese"],"生産バフ役","kinoko_hotpot_kamui","🍲","Rare",2,41,3),
-      G("limited_osechi_kami","おせち神",["winter","japanese","royal"],"年始限定高生産","osechi_kamui","🎍","Rare",2,55,5),
-      G("limited_ozoni_kami","お雑煮神",["winter","japanese","rice"],"和食補助","ozoni_kamui","🥣","Rare",2,38,3),
-      G("limited_choco_fondue","チョコフォンデュ神",["winter","sweet","royal"],"バレンタイン向け","choco_fondue_kamui","🍫","Rare",2,46,4),
-      G("limited_strawberry_choco","いちごチョコ神",["winter","sweet","fruit"],"タップと祝福","strawberry_choco_kamui","🍓","Rare",2,39,4),
-      G("limited_crab_feast","蟹饗宴神",["winter","sea","feast"],"超高生産寄り","crab_feast_kamui","🦀","Rare",2,58,5),
-      G("limited_halloween_pumpkin","ハロウィンかぼちゃ神",["halloween","sweet","curse"],"特殊演出向け","pumpkin_kamui","🎃","Rare",2,35,3),
-      G("limited_ghost_candy","ゴーストキャンディ神",["halloween","sweet","spirit"],"タップ特化","ghost_candy_kamui","🍬","Rare",2,40,4),
-      G("limited_devil_pizza","デビルピザ神",["halloween","flame","wheat"],"炎シナジー","devil_pizza_kamui","🍕","Rare",2,47,4),
-      G("limited_holy_chicken","聖夜チキン神",["christmas","feast","blessing"],"冬限定主力","holy_chicken_kamui","🍗","Rare",2,53,5),
-      G("limited_snow_cake","雪華ケーキ神",["christmas","sweet","holy"],"甘味高倍率","snow_cake_kamui","🎂","Rare",2,48,4),
-      G("limited_reindeer_stew","トナカイシチュー神",["christmas","feast","warmth"],"安定生産型","reindeer_stew_kamui","🍲","Rare",2,41,3),
-      G("limited_newyear_mochi","賀正もち神",["newyear","rice","blessing"],"ログボ相性","newyear_mochi_kamui","🍡","Rare",2,37,3),
-      G("limited_first_sun_soup","初日の出スープ神",["newyear","blessing","holy"],"補助特化","first_sun_soup_kamui","🥣","Rare",2,34,3),
-      G("limited_setsubun_beans","節分豆神",["event","beans","japanese"],"低コスト向け","setsubun_beans_kamui","🫘","Rare",2,28,2),
-      G("limited_hinamatsuri_arare","ひなあられ神",["event","sweet","japanese"],"春イベント支援","hinamatsuri_arare_kamui","🍘","Rare",2,32,3),
-      G("limited_white_day_macaron","マカロン返礼神",["event","sweet","royal"],"高級菓子系","macaron_kamui","🧁","Rare",2,45,4),
-      G("limited_easter_egg_tart","エッグタルト神",["event","sweet","egg"],"中盤用","egg_tart_kamui","🥧","Rare",2,36,3),
-      G("limited_spicy_curry","炎咖喱神",["limited","spice","flame"],"炎シナジー主軸","spicy_curry_kamui","🍛","UltraRare",3,300,20),
-      G("limited_cheese_lava","溶岩チーズ神",["limited","cheese","flame"],"合体映え特化","cheese_lava_kamui","🧀","UltraRare",3,320,22),
-      G("limited_dragon_noodle","龍麺神",["limited","noodle","divine"],"ラーメン派生上位","dragon_noodle_kamui","🍜","UltraRare",3,340,24),
-      G("limited_mermaid_gelato","人魚ジェラート神",["limited","sea","sweet"],"海シナジー特殊","mermaid_gelato_kamui","🍨","UltraRare",3,310,21),
-      G("limited_phoenix_omelette","不死鳥オム神",["limited","egg","divine"],"復活テーマ","phoenix_omelette_kamui","🍳","UltraRare",3,330,23),
-      G("limited_cosmic_burger","宇宙バーガー神",["limited","cosmic","wheat"],"高倍率終盤向け","cosmic_burger_kamui","🍔","UltraRare",3,360,25),
-      G("limited_thunder_udon","雷鳴うどん神",["limited","noodle","storm"],"麺シナジー強化","thunder_udon_kamui","🍜","UltraRare",3,350,24),
-      G("limited_blossom_soda","花霞ソーダ神",["limited","drink","blessing"],"軽量バフ役","blossom_soda_kamui","🥤","Rare",2,30,2),
-      G("ramenkami","ラーメン神・無限終焉",["noodle","divine"],"麺最終","ramenultimate","🍜","Common",1,5,1),
-      G("sushikami","寿司神・宙海皇",["sea","japanese"],"和食軸","sushidragon","🍣","Rare",1,12,2),
-      G("gyozakami","餃子神・天冥包王",["chinese","flour"],"中華軸","gyozaultra","🥟","Common",1,6,1),
-      G("matchakami","抹茶神・翠極天照",["tea","japanese"],"茶軸","matchaparfaitkami","🍵","Common",1,8,1),
-      G("breadkami","パン神・聖焼創世",["wheat","morning"],"小麦軸","hotcakekami","🍞","Common",1,7,1),
-      G("coffeekami","珈琲神・深淵覚王",["coffee","morning"],"朝/苦味","tiramisukami","☕","Rare",1,14,2),
-      G("pizzakami","ピザ神・紅蓮星帝",["flame","wheat"],"炎軸","pizzaflame","🍕","Rare",1,16,2),
-      G("steakkami","ステーキ神・覇滅王",["royal","feast"],"覇王軸","steakoverlord","🥩","Secret",1,18,2),
-      G("tempurakami","天ぷら神・雷衣武尊",["japanese","holy"],"和食支援","tempurahalo","🍤","Rare",1,13,2),
-      G("udonkami","うどん神・白界巡礼",["noodle","warmth"],"麺支援","udonvoid","🍜","Common",1,9,1),
-      G("sobakami","そば神・夜叉月読",["noodle","japanese"],"麺/和食","soupdimension","🍜","Rare",1,11,2),
-      G("yakinikukami","焼肉神・炎獄大君",["feast","flame"],"火力","steakoverlord","🥩","UltraRare",2,60,6),
-      G("currykami","カレー神・千香魔皇",["spice","feast"],"生産強化","currycataclysm","🍛","Rare",1,15,2),
-      G("takoyakikami","たこ焼き神・円環祭主",["festival","sea"],"祭り","takoyakymeteor","🐙","Rare",1,14,2),
-      G("omuricekami","オムライス神・黄金慈母",["egg","rice"],"安定","omelettecrown","🍳","Rare",1,13,2),
-      G("chahankami","チャーハン神・爆香覇神",["rice","flame"],"中盤","riceoriginlord","🍚","Rare",1,12,2),
-      G("karaagekami","唐揚げ神・空裂武神",["flour","feast"],"おかず","unagi_kingdom","🍗","Common",1,10,1),
-      G("burgerkami","ハンバーガー神・超積界王",["wheat","feast"],"終盤","burger_nebula","🍔","Rare",1,17,2),
-      G("hotdogkami","ホットドッグ神・迅雷走神",["wheat","drink"],"中盤","soda_revelation","🌭","Common",1,8,1),
-      G("parfaitkami","パフェ神・甘美星后",["sweet","fruit"],"甘味","parfait_oracle","🍨","Rare",1,16,2),
-      G("cakekami","ケーキ神・祝福冥姫",["sweet","royal"],"甘味終盤","macaron_empress","🎂","Rare",1,18,2),
-      G("icekami","アイス神・零度白王",["ice","sweet"],"冷菓","ice_miracle","🍧","Rare",1,15,2),
-      G("onigirikami","おにぎり神・豊穣結界尊",["rice","blessing"],"土台","riceoriginlord","🍙","Common",1,9,1),
-      G("misokami","味噌神・古樽叡智王",["warmth","japanese"],"支援","soup_dimension","🥣","Rare",1,10,1),
-      G("soyokami","醤油神・黒滴真祖",["japanese","sea"],"和食","sushikami","🍶","Common",1,8,1),
-      G("nabekami","鍋神・百宴炉皇",["feast","warmth"],"生産","hotpot_heaven","🍲","Rare",1,15,2),
-      G("seafooddonkami","海鮮丼神・蒼覇龍宮",["sea","feast"],"海最終","crab_abyssal","🍚","UltraRare",2,70,7),
-      G("taiyakikami","たい焼き神・福巡火守",["sweet","japanese"],"和菓子","daifuku_moon","🐟","Common",1,9,1),
-      G("chocokami","チョコ神・禁甘魔導王",["sweet","coffee"],"甘苦","choco_seraph","🍫","Rare",1,16,2),
-      G("foodgodzero","フードゴット・神威零",["all","origin"],"頂点","ss_food_ark","👑","Secret",5,10000,500)
-    ];
-  }
-}
-class SynergySystem {
-  constructor(){
-    this.definitions = [
-      {name:"麺シナジー", tagsA:["noodle"], tagsB:["noodle"], multiplier:1.35},
-      {name:"和食シナジー", tagsA:["japanese"], tagsB:["japanese"], multiplier:1.45},
-      {name:"朝食シナジー", tagsA:["morning"], tagsB:["morning"], multiplier:1.4},
-      {name:"海シナジー", tagsA:["sea"], tagsB:["sea"], multiplier:1.38},
-      {name:"甘味シナジー", tagsA:["sweet"], tagsB:["sweet"], multiplier:1.32},
-      {name:"根源覚醒", tagsA:["secret_s"], tagsB:["secret_s"], multiplier:1.7}
-    ];
-  }
-  hasAllTags(god,tags){ return tags.every(t=>god.synergyTags.includes(t)); }
-  calculate(instances,godDb,distanceThreshold=110){
-    const activePairs=[]; let multiplier=1;
-    for(let i=0;i<instances.length;i++)for(let j=i+1;j<instances.length;j++){
-      const a=instances[i], b=instances[j], godA=godDb.get(a.godId), godB=godDb.get(b.godId);
-      if(!godA || !godB) continue;
-      if(Util.dist(a.x,a.y,b.x,b.y) > distanceThreshold) continue;
-      for(const def of this.definitions){
-        const aMatch = this.hasAllTags(godA, def.tagsA) && this.hasAllTags(godB, def.tagsB);
-        const bMatch = this.hasAllTags(godB, def.tagsA) && this.hasAllTags(godA, def.tagsB);
-        if(aMatch || bMatch){
-          activePairs.push({name:def.name, ax:a.x, ay:a.y, bx:b.x, by:b.y});
-          multiplier *= def.multiplier;
-          break;
+</code></pre>
+
+<h2>4. クラス設計</h2>
+<pre><code>// GameManager.cs
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GameManager : MonoBehaviour
+{
+    public static GameManager Instance { get; private set; }
+
+    [Header("Economy")]
+    public long currency = 50000;
+    public long umami = 0;
+    public long tapGain = 1;
+    public long perSecondGain = 5;
+    public float synergyMultiplier = 1f;
+
+    [Header("References")]
+    public CurrencyUIController currencyUI;
+    public SaveManager saveManager;
+    public AudioManager audioManager;
+    public LoginBonusController loginBonusController;
+    public GachaController gachaController;
+
+    public event Action&lt;long&gt; OnCurrencyChanged;
+    public event Action&lt;long&gt; OnUmamiChanged;
+    public event Action&lt;float&gt; OnProductionChanged;
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
+
+    private void Start()
+    {
+        LoadGame();
+        StartCoroutine(AutoProduceRoutine());
+        StartCoroutine(AutoConvertUmamiRoutine());
+        loginBonusController.TryShowLoginBonus();
+    }
+
+    private IEnumerator AutoProduceRoutine()
+    {
+        var wait = new WaitForSeconds(1f);
+        while (true)
+        {
+            yield return wait;
+            long gain = Mathf.CeilToInt((float)(perSecondGain * synergyMultiplier));
+            AddCurrency(gain);
         }
-      }
     }
-    return {multiplier:Math.min(multiplier,25), activePairs};
-  }
+
+    private IEnumerator AutoConvertUmamiRoutine()
+    {
+        var wait = new WaitForSeconds(0.2f);
+        while (true)
+        {
+            yield return wait;
+            if (umami &gt;= 50)
+            {
+                long bundles = umami / 50;
+                long converted = bundles * 1000;
+                umami -= bundles * 50;
+                AddCurrency(converted);
+                currencyUI.PlayBigGain(converted);
+            }
+        }
+    }
+
+    public void TapMainArea()
+    {
+        long gain = tapGain;
+        AddCurrency(gain);
+        currencyUI.SpawnTapText(gain);
+        audioManager.PlayTap();
+    }
+
+    public void AddUmami(long amount)
+    {
+        umami += amount;
+        OnUmamiChanged?.Invoke(umami);
+        currencyUI.UpdateUmami(umami);
+    }
+
+    public bool CanSpend(long amount) =&gt; currency &gt;= amount;
+
+    public bool Spend(long amount)
+    {
+        if (currency &lt; amount) return false;
+        currency -= amount;
+        OnCurrencyChanged?.Invoke(currency);
+        currencyUI.UpdateCurrency(currency);
+        return true;
+    }
+
+    public void AddCurrency(long amount)
+    {
+        currency += amount;
+        OnCurrencyChanged?.Invoke(currency);
+        currencyUI.UpdateCurrency(currency);
+    }
+
+    public void SetProduction(long perSec)
+    {
+        perSecondGain = perSec;
+        OnProductionChanged?.Invoke(perSecondGain);
+        currencyUI.UpdateProduction(perSecondGain, tapGain, synergyMultiplier);
+    }
+
+    public void SetSynergyMultiplier(float mult)
+    {
+        synergyMultiplier = mult;
+        OnProductionChanged?.Invoke(perSecondGain);
+        currencyUI.UpdateProduction(perSecondGain, tapGain, synergyMultiplier);
+    }
+
+    public void SaveGame()
+    {
+        saveManager.Save(currency, umami, BoardAreaManager.Instance.ExportBoardState());
+    }
+
+    public void LoadGame()
+    {
+        var data = saveManager.Load();
+        currency = data.currencyValue;
+        umami = data.umamiValue;
+        currencyUI.UpdateAll(currency, umami, perSecondGain, tapGain, synergyMultiplier);
+    }
+
+    private void OnApplicationPause(bool pause)
+    {
+        if (pause) SaveGame();
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveGame();
+    }
 }
-class MergeSystem {
-  constructor(godDb){ this.godDb=godDb; }
-  canMerge(a,b){
-    if(!a || !b) return false;
-    const ga = this.godDb.get(a.godId), gb = this.godDb.get(b.godId);
-    return ga && gb && ga.id !== gb.id && ga.rank === gb.rank && !!ga.evolveTo && ga.evolveTo === gb.evolveTo;
-  }
-  merge(a,b){
-    const base = this.godDb.get(a.godId);
-    if(!base || !base.evolveTo) return null;
-    const evolved = this.godDb.get(base.evolveTo);
-    if(!evolved) return null;
-    return {newGodId:evolved.id, x:(a.x+b.x)/2, y:(a.y+b.y)/2, data:evolved};
-  }
+</code></pre>
+
+<pre><code>// GodInstance.cs
+using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Collections;
+
+[RequireComponent(typeof(Collider2D))]
+public class GodInstance : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
+{
+    public GodData data;
+    public int currentRank;
+    public bool isDragging;
+    public bool isInBoard;
+    public Transform visualRoot;
+
+    private Vector3 startPos;
+    private CanvasGroup canvasGroup;
+    private BoardAreaManager board;
+    private DragHandler dragHandler;
+    private float longPressTime;
+    private bool longPressed;
+
+    private void Awake()
+    {
+        canvasGroup = GetComponent&lt;CanvasGroup&gt;();
+        if (!canvasGroup) canvasGroup = gameObject.AddComponent&lt;CanvasGroup&gt;();
+        board = BoardAreaManager.Instance;
+    }
+
+    public void Init(GodData god)
+    {
+        data = god;
+        currentRank = god.rank;
+        RefreshVisual();
+    }
+
+    public void RefreshVisual()
+    {
+        if (visualRoot != null)
+        {
+            visualRoot.localScale = Vector3.one;
+        }
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        startPos = transform.position;
+        longPressTime = Time.unscaledTime;
+        longPressed = false;
+        StartCoroutine(LongPressRoutine());
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (!isDragging)
+        {
+            transform.localScale = Vector3.one;
+        }
+    }
+
+    private IEnumerator LongPressRoutine()
+    {
+        yield return new WaitForSecondsRealtime(0.55f);
+        if (!isDragging && Time.unscaledTime - longPressTime &gt;= 0.55f)
+        {
+            longPressed = true;
+            PopupController.Instance.ShowGodDetail(this);
+            transform.position += Vector3.up * 0.12f;
+        }
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        isDragging = true;
+        canvasGroup.alpha = 0.6f;
+        transform.localScale = Vector3.one * 1.08f;
+        board.BeginDrag(this);
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        Vector3 world = Camera.main.ScreenToWorldPoint(eventData.position);
+        transform.position = new Vector3(world.x, world.y, 0f);
+        board.UpdateDragHighlight(this);
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        isDragging = false;
+        canvasGroup.alpha = 1f;
+        transform.localScale = Vector3.one;
+        board.EndDrag(this);
+    }
+
+    public void ReturnToStart()
+    {
+        transform.position = startPos;
+    }
+
+    public void PlaySpawnBounce()
+    {
+        StartCoroutine(BounceRoutine());
+    }
+
+    private IEnumerator BounceRoutine()
+    {
+        Vector3 baseScale = transform.localScale;
+        transform.localScale = baseScale * 0.9f;
+        yield return new WaitForSeconds(0.08f);
+        transform.localScale = baseScale * 1.08f;
+        yield return new WaitForSeconds(0.08f);
+        transform.localScale = baseScale;
+    }
 }
-class GachaSystem {
-  constructor(godDb){
-    this.godDb = godDb;
-    this.initialYen = 50000;
-  }
-  getCurrentBanner(){
-    const h = Util.nowHour();
-    const isMorning = h >= 6 && h < 8;
-    const isEvening = h >= 17 && h < 20;
-    if(isMorning || isEvening){
-      return {
-        type:"secretZ",
-        title:"シークレットZガチャ",
-        imageKey:null,
-        cost:0,
-        description:"KB到達ユーザー向け。フードゴット・根源10個で引ける特別枠。引くと所持資金は全て消費されます。",
-        pool:this.godDb.getAll().filter(g=>g.rarity==="Secret")
-      };
+</code></pre>
+
+<pre><code>// BoardAreaManager.cs
+using System.Collections.Generic;
+using UnityEngine;
+
+public class BoardAreaManager : MonoBehaviour
+{
+    public static BoardAreaManager Instance { get; private set; }
+
+    [System.Serializable]
+    public class BoardSlot
+    {
+        public Transform point;
+        public GodInstance current;
     }
-    return {
-      type:"normal",
-      title:"通常ガチャ",
-      imageKey:null,
-      cost:1000,
-      description:"通常召喚。",
-      pool:this.godDb.getAll().filter(g=>g.rarity!=="Secret")
-    };
-  }
-  summon(){ const banner=this.getCurrentBanner(); return {banner, god:Util.randomChoice(banner.pool)}; }
+
+    public List&lt;BoardSlot&gt; slots = new List&lt;BoardSlot&gt;();
+    public float mergeDistance = 0.85f;
+    public MergeSystem mergeSystem;
+    public SynergySystem synergySystem;
+    public RareEffectController rareEffectController;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public bool TryPlaceGod(GodInstance god)
+    {
+        BoardSlot nearest = FindNearestEmptySlot(god.transform.position);
+        if (nearest == null) return false;
+        nearest.current = god;
+        god.isInBoard = true;
+        god.transform.position = nearest.point.position;
+        god.PlaySpawnBounce();
+        rareEffectController.PlayPlacementEffect(god);
+        return true;
+    }
+
+    public BoardSlot FindNearestEmptySlot(Vector3 pos)
+    {
+        BoardSlot best = null;
+        float bestDist = float.MaxValue;
+        foreach (var slot in slots)
+        {
+            if (slot.current != null) continue;
+            float d = Vector3.Distance(pos, slot.point.position);
+            if (d &lt; bestDist)
+            {
+                bestDist = d;
+                best = slot;
+            }
+        }
+        return best;
+    }
+
+    public void BeginDrag(GodInstance god)
+    {
+        synergySystem.SetPreview(god, true);
+    }
+
+    public void UpdateDragHighlight(GodInstance god)
+    {
+        var target = FindMergeTarget(god);
+        mergeSystem.SetHighlightTarget(target);
+    }
+
+    public void EndDrag(GodInstance god)
+    {
+        synergySystem.SetPreview(god, false);
+        var target = FindMergeTarget(god);
+        if (target != null)
+        {
+            mergeSystem.Merge(god, target);
+            return;
+        }
+        if (!TryPlaceGod(god))
+            god.ReturnToStart();
+        synergySystem.Recalculate();
+    }
+
+    public GodInstance FindMergeTarget(GodInstance source)
+    {
+        foreach (var slot in slots)
+        {
+            if (slot.current == null || slot.current == source) continue;
+            if (slot.current.data.id == source.data.id && slot.current.currentRank == source.currentRank)
+            {
+                if (Vector3.Distance(slot.current.transform.position, source.transform.position) &lt; mergeDistance)
+                    return slot.current;
+            }
+        }
+        return null;
+    }
+
+    public List&lt;string&gt; ExportBoardState()
+    {
+        var list = new List&lt;string&gt;();
+        foreach (var slot in slots)
+        {
+            list.Add(slot.current != null ? slot.current.data.id : "");
+        }
+        return list;
+    }
 }
-class CurrencyUIController {
-  constructor(){
-    this.currencyValue=document.getElementById("currencyValue");
-    this.yenValue=document.getElementById("yenValue");
-    this.productionValue=document.getElementById("productionValue");
-    this.tapValue=document.getElementById("tapValue");
-    this.synergyValue=document.getElementById("synergyValue");
-  }
-  setCurrency(v){ this.currencyValue.textContent = Util.formatNumber(v); }
-  setYen(v){ this.yenValue.textContent = Util.formatYen(v); }
-  setProduction(v){ this.productionValue.textContent = Util.formatNumber(v); }
-  setTap(v){ this.tapValue.textContent = Util.formatNumber(v); }
-  setSynergy(m){ this.synergyValue.textContent = "x" + m.toFixed(2); }
+</code></pre>
+
+<pre><code>// MergeSystem.cs
+using System.Collections;
+using UnityEngine;
+
+public class MergeSystem : MonoBehaviour
+{
+    public MergeResultPopup mergePopup;
+    public RareEffectController rareEffectController;
+    public AudioManager audioManager;
+    public CameraShake cameraShake;
+
+    private GodInstance highlighted;
+
+    public void SetHighlightTarget(GodInstance target)
+    {
+        if (highlighted == target) return;
+        if (highlighted != null) highlighted.transform.localScale = Vector3.one;
+        highlighted = target;
+        if (highlighted != null) highlighted.transform.localScale = Vector3.one * 1.08f;
+    }
+
+    public void Merge(GodInstance a, GodInstance b)
+    {
+        StartCoroutine(MergeRoutine(a, b));
+    }
+
+    private IEnumerator MergeRoutine(GodInstance a, GodInstance b)
+    {
+        audioManager.PlayMerge();
+        rareEffectController.PlayMergeBurst(a.transform.position);
+        cameraShake.Shake(0.18f, 0.12f);
+
+        Vector3 center = (a.transform.position + b.transform.position) * 0.5f;
+        yield return new WaitForSeconds(0.1f);
+
+        Destroy(b.gameObject);
+        var nextData = GodDatabase.Instance.GetNextEvolution(a.data);
+        if (nextData == null)
+        {
+            yield break;
+        }
+
+        a.data = nextData;
+        a.currentRank += 1;
+        a.transform.position = center;
+        a.PlaySpawnBounce();
+
+        mergePopup.Show(nextData.displayName, nextData.icon, nextData.rarity);
+        SynergySystem.Instance.Recalculate();
+    }
 }
-class LoginBonusController {
-  constructor(audio,popupController){
-    this.audio=audio; this.popupController=popupController;
-    this.board=document.getElementById("loginBoard");
-    this.rewardText=document.getElementById("loginRewardText");
-    this.rewardDetail=document.getElementById("loginRewardDetail");
-    this.stamp=document.getElementById("loginStamp");
-    document.getElementById("loginCloseBtn").addEventListener("click",()=>this.hide());
-  }
-  buildReward(){
-    const rewards=[
-      {type:"umami", amount:5000, text:"うまみ +5000", detail:""},
-      {type:"umami", amount:12000, text:"うまみ +12000", detail:""},
-      {type:"rate", amount:1, text:"レア率UP", detail:""},
-      {type:"todaygod", amount:1, text:"本日特典", detail:"ラーメン系ボーナス"}
-    ];
-    return Util.randomChoice(rewards);
-  }
-  show(reward, onApplyReward){
-    this.popupController.showDim();
-    this.board.classList.remove("hidden");
-    requestAnimationFrame(()=>this.board.classList.add("show"));
-    this.rewardText.textContent = reward.text;
-    this.rewardDetail.textContent = reward.detail;
-    this.stamp.classList.remove("hit");
-    this.stamp.style.opacity = 0;
-    setTimeout(()=>{ this.stamp.classList.add("hit"); this.audio.stamp(); }, 420);
-    onApplyReward?.(reward);
-  }
-  hide(){
-    this.board.classList.remove("show");
-    this.board.classList.add("hidden");
-    this.popupController.hideDimIfPossible();
-  }
+</code></pre>
+
+<pre><code>// SynergySystem.cs
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+
+public class SynergySystem : MonoBehaviour
+{
+    public static SynergySystem Instance { get; private set; }
+
+    public List&lt;SynergyData&gt; synergyDatas = new List&lt;SynergyData&gt;();
+    public LineRenderer linePrefab;
+    public Transform effectRoot;
+    public CurrencyUIController currencyUI;
+
+    private readonly List&lt;LineRenderer&gt; activeLines = new List&lt;LineRenderer&gt;();
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public void SetPreview(GodInstance god, bool active)
+    {
+        if (!active) ClearPreview();
+    }
+
+    public void Recalculate()
+    {
+        ClearLines();
+        float multiplier = 1f;
+        var gods = BoardAreaManager.Instance.slots.Where(s =&gt; s.current != null).Select(s =&gt; s.current).ToList();
+
+        foreach (var synergy in synergyDatas)
+        {
+            var matched = gods.Where(g =&gt; synergy.requiredTags.All(t =&gt; g.data.synergyTags.Contains(t))).ToList();
+            if (matched.Count &gt;= 2)
+            {
+                multiplier *= synergy.bonusMultiplier;
+                DrawSynergyLine(matched[0], matched[1], synergy);
+            }
+        }
+
+        GameManager.Instance.SetSynergyMultiplier(multiplier);
+    }
+
+    private void DrawSynergyLine(GodInstance a, GodInstance b, SynergyData synergy)
+    {
+        var line = Instantiate(linePrefab, effectRoot);
+        line.positionCount = 2;
+        line.useWorldSpace = true;
+        line.SetPosition(0, a.transform.position);
+        line.SetPosition(1, b.transform.position);
+        activeLines.Add(line);
+    }
+
+    private void ClearLines()
+    {
+        foreach (var l in activeLines)
+        {
+            if (l != null) Destroy(l.gameObject);
+        }
+        activeLines.Clear();
+    }
+
+    private void ClearPreview()
+    {
+    }
 }
-class BoardAreaManager {
-  constructor(boardEl,godDb,popupController,audio){
-    this.boardEl=boardEl; this.godDb=godDb; this.popupController=popupController; this.audio=audio;
-    this.instances=[]; this.uidCounter=1; this.elements=new Map(); this.onDragEnd=null;
-  }
-  setInstances(raw){ this.instances=raw.map(r=>({uid:r.uid,godId:r.godId,x:r.x,y:r.y})); this.uidCounter=Math.max(1,...this.instances.map(i=>i.uid),0)+1; this.renderAll(); }
-  serialize(){ return this.instances.map(i=>({uid:i.uid,godId:i.godId,x:i.x,y:i.y})); }
-  addGod(godId,x=null,y=null){
-    const rect=this.boardEl.getBoundingClientRect();
-    const nx=x!=null?x:60+Math.random()*Math.max(60,rect.width-120);
-    const ny=y!=null?y:60+Math.random()*Math.max(80,rect.height-120);
-    const inst={uid:this.uidCounter++, godId, x:nx, y:ny};
-    this.instances.push(inst); this.createElement(inst); this.audio.place(); return inst;
-  }
-  removeByUid(uid){
-    const idx=this.instances.findIndex(i=>i.uid===uid); if(idx>=0)this.instances.splice(idx,1);
-    const el=this.elements.get(uid); if(el) el.remove(); this.elements.delete(uid);
-  }
-  getByUid(uid){ return this.instances.find(i=>i.uid===uid); }
-  renderAll(){ this.boardEl.querySelectorAll(".god,.synergy-line,.synergy-label").forEach(el=>el.remove()); this.elements.clear(); this.instances.forEach(inst=>this.createElement(inst)); }
-  clearSynergyLines(){ this.boardEl.querySelectorAll(".synergy-line").forEach(el=>el.remove()); }
-  drawSynergyLines(activePairs){
-    this.clearSynergyLines();
-    activePairs.forEach(pair=>{
-      const line=document.createElement("div"); line.className="synergy-line";
-      const dx=pair.bx-pair.ax, dy=pair.by-pair.ay, len=Math.sqrt(dx*dx+dy*dy), angle=Math.atan2(dy,dx)*180/Math.PI;
-      line.style.left=pair.ax+"px"; line.style.top=pair.ay+"px"; line.style.width=len+"px"; line.style.transform="rotate("+angle+"deg)";
-      this.boardEl.appendChild(line);
-      const label=document.createElement("div"); label.className="synergy-label"; label.textContent=pair.name; label.style.left=(pair.ax+pair.bx)/2+"px"; label.style.top=(pair.ay+pair.by)/2+"px";
-      this.boardEl.appendChild(label); setTimeout(()=>label.remove(),1250);
-    });
-  }
-  createElement(inst){
-    const god=this.godDb.get(inst.godId); if(!god) return;
-    const el=document.createElement("div"); el.className="god";
-    if(god.rarity==="Secret") el.classList.add("god-secret");
-    el.dataset.uid=String(inst.uid);
-    el.style.left=(inst.x-39)+"px"; el.style.top=(inst.y-45)+"px";
-    const aura=document.createElement("div"); aura.className="aura"; aura.style.background = god.auraColor;
-    if(god.rarity==="Common") aura.style.opacity=0.15;
-    if(god.rarity==="Rare") aura.style.opacity=0.2;
-    if(god.rarity==="UltraRare") aura.style.opacity=0.28;
-    if(god.rarity==="Secret") aura.style.opacity=0.38;
-    el.appendChild(aura);
-    const emoji=document.createElement("div"); emoji.className="god-emoji"; emoji.textContent=god.emojiFallback; el.appendChild(emoji);
-    const name=document.createElement("div"); name.className="god-name"; name.textContent=god.name; el.appendChild(name);
-    const rarity=document.createElement("div"); rarity.className="god-rarity rarity-"+god.rarity.toLowerCase(); rarity.textContent=god.rarity; el.appendChild(rarity);
-    this.bindDrag(el,inst);
-    this.boardEl.appendChild(el);
-    this.elements.set(inst.uid,el);
-  }
-  updatePosition(inst){ const el=this.elements.get(inst.uid); if(el){ el.style.left=(inst.x-39)+"px"; el.style.top=(inst.y-45)+"px"; } }
-  bindDrag(el,inst){
-    let dragging=false, offsetX=0, offsetY=0, highlightUid=null;
-    const clearHighlight=()=>{ this.instances.forEach(other=>this.elements.get(other.uid)?.classList.remove("highlight")); };
-    el.addEventListener("pointerdown",e=>{
-      e.preventDefault();
-      const rect=el.getBoundingClientRect();
-      const boardRect=this.boardEl.getBoundingClientRect();
-      offsetX=e.clientX-rect.left;
-      offsetY=e.clientY-rect.top;
-      el.setPointerCapture(e.pointerId);
-      const move=(ev)=>{
-        const br=this.boardEl.getBoundingClientRect();
-        if(!dragging){ dragging=true; el.classList.add("dragging"); }
-        let x=ev.clientX-br.left-offsetX+39;
-        let y=ev.clientY-br.top-offsetY+45;
-        x=Util.clamp(x,39,br.width-39); y=Util.clamp(y,45,br.height-45);
-        inst.x=x; inst.y=y; this.updatePosition(inst);
-        highlightUid=null;
-        this.instances.forEach(other=>{
-          const oe=this.elements.get(other.uid); if(other.uid===inst.uid) return;
-          oe?.classList.remove("highlight");
-          if(window.game.mergeSystem.canMerge(inst,other) && Util.dist(inst.x,inst.y,other.x,other.y) < 70){ highlightUid=other.uid; oe?.classList.add("highlight"); }
-        });
-      };
-      const up=()=>{
-        el.removeEventListener("pointermove",move);
-        el.removeEventListener("pointerup",up);
-        el.removeEventListener("pointercancel",up);
-        el.classList.remove("dragging");
-        clearHighlight();
-        if(highlightUid!=null) this.onDragEnd?.(inst.uid, highlightUid);
-      };
-      el.addEventListener("pointermove",move);
-      el.addEventListener("pointerup",up);
-      el.addEventListener("pointercancel",up);
-    });
-  }
+</code></pre>
+
+<pre><code>// GodDatabase.cs
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GodDatabase : MonoBehaviour
+{
+    public static GodDatabase Instance { get; private set; }
+
+    public List&lt;GodData&gt; allGods = new List&lt;GodData&gt;();
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public GodData GetById(string id)
+    {
+        return allGods.Find(g =&gt; g.id == id);
+    }
+
+    public GodData GetNextEvolution(GodData current)
+    {
+        if (current == null || string.IsNullOrEmpty(current.nextEvolutionId)) return null;
+        return GetById(current.nextEvolutionId);
+    }
 }
-class GameManager {
-  constructor(){
-    this.audio=new AudioManager();
-    this.popupController=new PopupController(document.getElementById("screenDim"));
-    this.godDb=new GodDatabase();
-    this.synergySystem=new SynergySystem();
-    this.mergeSystem=new MergeSystem(this.godDb);
-    this.gachaSystem=new GachaSystem(this.godDb);
-    this.currencyUI=new CurrencyUIController();
-    this.rareEffect=new RareEffectController(this.audio);
-    this.loginBonusController=new LoginBonusController(this.audio,this.popupController);
-    this.boardManager=new BoardAreaManager(document.getElementById("boardArea"),this.godDb,this.popupController,this.audio);
-    this.currency=0;
-    this.yen=this.gachaSystem.initialYen;
-    this.baseTap=1;
-    this.productionPerSec=0;
-    this.synergyMultiplier=1;
-    this.loginRareBoost=false;
-    this.todayGodBoost=false;
-    this.lastTickTime=performance.now();
-    this.lastSaveTime=Date.now();
-    this.lastLoginBonusDate=null;
-    this.lastSynergySignature="";
-    this.titleScreen=document.getElementById("titleScreen");
-    this.gameScreen=document.getElementById("gameScreen");
-    this.tapArea=document.getElementById("tapArea");
-    this.tapCore=document.getElementById("tapCore");
-    this.mergePopup=document.getElementById("mergePopup");
-    this.mergeResultImg=document.getElementById("mergeResultImg");
-    this.mergeResultEmoji=document.getElementById("mergeResultEmoji");
-    this.mergeResultName=document.getElementById("mergeResultName");
-    this.detailPopup=document.getElementById("detailPopup");
-    this.noticePopup=document.getElementById("noticePopup");
-    this.challengePopup=document.getElementById("challengePopup");
-    this.noticeText=document.getElementById("noticeText");
-    this.challengeText=document.getElementById("challengeText");
-    this.bindUI();
-    this.loadGame();
-    this.refreshBanner();
-    this.recalculateStats();
-    this.startLoop();
-  }
-  bindUI(){
-    ButtonFeedback.bindAll(this.audio);
-    document.getElementById("startBtn").addEventListener("click",()=>this.enterGame());
-    document.getElementById("noticeBtn").addEventListener("click",()=>this.showNotice());
-    document.getElementById("challengeBtn").addEventListener("click",()=>this.showChallenge());
-    document.getElementById("resetBtn").addEventListener("click",()=>{ SaveManager.clear(); location.reload(); });
-    document.getElementById("summonBtn").addEventListener("click",()=>this.summon());
-    document.getElementById("saveBtn").addEventListener("click",()=>this.saveGame());
-    document.getElementById("backTitleBtn").addEventListener("click",()=>this.backToTitle());
-    document.getElementById("todayGodBtn").addEventListener("click",()=>this.showTodayGodNotice());
-    document.getElementById("mergeCloseBtn").addEventListener("click",()=>this.popupController.hide(this.mergePopup));
-    document.getElementById("detailCloseBtn").addEventListener("click",()=>this.popupController.hide(this.detailPopup));
-    document.getElementById("noticeCloseBtn").addEventListener("click",()=>this.popupController.hide(this.noticePopup));
-    document.getElementById("challengeCloseBtn").addEventListener("click",()=>this.popupController.hide(this.challengePopup));
-    document.getElementById("tapArea").addEventListener("pointerdown",e=>this.handleTap(e));
-    this.boardManager.onDragEnd = (uidA,uidB)=>this.tryMerge(uidA,uidB);
-    window.addEventListener("beforeunload",()=>this.saveGame());
-  }
-  enterGame(){ this.titleScreen.classList.add("hidden"); this.gameScreen.classList.remove("hidden"); this.refreshBanner(); }
-  backToTitle(){ this.gameScreen.classList.add("hidden"); this.titleScreen.classList.remove("hidden"); }
-  showNotice(){
-    this.noticeText.innerHTML = `
-      <b>追加仕様</b><br>
-      ・根源3組み合わせでランダムにシークレットSが出現。<br>
-      ・6:00〜8:00、17:00〜20:00はKB到達ユーザーにシークレットZガチャ表示。<br>
-      ・Zガチャを引くと所持資金は全消費。<br>
-      ・タップでうまみポイントが貯まり、50で¥1000へ変換。<br>
-      ・数値はK / M / B / T / Qa / Qi / Sx などで省略表示。<br>
-    `;
-    this.popupController.show(this.noticePopup);
-  }
-  showChallenge(){
-    const list = this.godDb.getAll().map(g=>`${g.name} ｜ ${g.rarity} ｜ ${g.synergyTags.join(", ")}`).join("<br>");
-    this.challengeText.innerHTML = list;
-    this.popupController.show(this.challengePopup);
-  }
-  showTodayGodNotice(){
-    this.noticeText.innerHTML = `<b>本日特典</b><br>ラーメン系に少し有利な日替わり補正があります。`;
-    this.popupController.show(this.noticePopup);
-  }
-  handleTap(e){
-    this.audio.tap();
-    this.tapCore.classList.add("tapped");
-    setTimeout(()=>this.tapCore.classList.remove("tapped"),80);
-    const gain = this.getTapGain();
-    this.currency += gain;
-    this.currencyUI.setCurrency(this.currency);
-    this.spawnFloatingNumber(e.clientX,e.clientY, Util.formatNumber(gain), gain >= 100 ? "#b236f2" : "#8b4e00");
-    this.rareEffect.flash();
-    this.addUmami(1);
-  }
-  addUmami(points){
-    this.umami = (this.umami || 0) + points;
-    while(this.umami >= 50){
-      this.umami -= 50;
-      this.yen += 1000;
+</code></pre>
+
+<pre><code>// GodSpawner.cs
+using UnityEngine;
+
+public class GodSpawner : MonoBehaviour
+{
+    public Transform spawnRoot;
+    public GodInstance godPrefab;
+    public ButtonFeedback summonButtonFeedback;
+    public RareEffectController rareEffectController;
+    public AudioManager audioManager;
+
+    public void SummonGod(GodData data, long cost)
+    {
+        if (!GameManager.Instance.Spend(cost)) return;
+
+        var god = Instantiate(godPrefab, spawnRoot);
+        god.Init(data);
+        god.transform.position = spawnRoot.position;
+        god.PlaySpawnBounce();
+        rareEffectController.PlaySpawnEffect(data, god.transform.position);
+        audioManager.PlaySummon(data.rarity);
+        BoardAreaManager.Instance.TryPlaceGod(god);
     }
-    this.currencyUI.setYen(this.yen);
-  }
-  getTapGain(){
-    let total = this.baseTap;
-    this.boardManager.instances.forEach(inst=>{
-      const god=this.godDb.get(inst.godId);
-      if(!god) return;
-      total += god.tapBonus;
-      if(this.todayGodBoost && god.id.includes("ramen")) total += Math.floor(god.tapBonus*0.5);
-    });
-    total *= this.synergyMultiplier;
-    return Math.floor(total);
-  }
-  calculateProduction(){
-    let total=0;
-    this.boardManager.instances.forEach(inst=>{
-      const god=this.godDb.get(inst.godId);
-      if(!god) return;
-      let value=god.baseProduction;
-      if(this.todayGodBoost && god.id.includes("ramen")) value *= 1.25;
-      if(god.rarity==="Secret") value *= 1.15;
-      total += value;
-    });
-    const secretCount = this.boardManager.instances.filter(inst => this.godDb.get(inst.godId)?.rarity === "Secret").length;
-    if(secretCount > 0) total *= 1 + secretCount * 0.15;
-    return total * this.synergyMultiplier;
-  }
-  recalculateStats(){
-    const synergy = this.synergySystem.calculate(this.boardManager.instances, this.godDb);
-    this.synergyMultiplier = synergy.multiplier;
-    this.productionPerSec = this.calculateProduction();
-    this.currencyUI.setProduction(this.productionPerSec);
-    this.currencyUI.setTap(this.getTapGain());
-    this.currencyUI.setSynergy(this.synergyMultiplier);
-    this.boardManager.drawSynergyLines(synergy.activePairs);
-    const signature = synergy.activePairs.map(p=>`${p.name}:${p.ax}:${p.ay}:${p.bx}:${p.by}`).sort().join("|");
-    if(signature && signature !== this.lastSynergySignature){
-      const seen=new Set();
-      synergy.activePairs.forEach(pair=>{ if(seen.has(pair.name)) return; seen.add(pair.name); this.boardManager.showSynergyLabel(pair.name,(pair.ax+pair.bx)/2,(pair.ay+pair.by)/2); });
-    }
-    this.lastSynergySignature = signature;
-  }
-  spawnFloatingNumber(clientX,clientY,text,color="#8b4e00"){
-    const node=document.createElement("div");
-    node.className="floating-number";
-    node.textContent=text;
-    node.style.left=clientX+"px";
-    node.style.top=clientY+"px";
-    node.style.color=color;
-    node.style.fontSize = text.length > 6 ? "20px" : "24px";
-    document.getElementById("app").appendChild(node);
-    setTimeout(()=>node.remove(),850);
-  }
-  refreshBanner(){
-    const banner=this.gachaSystem.getCurrentBanner();
-    const title=document.getElementById("gachaTitle");
-    const desc=document.getElementById("gachaDesc");
-    const cost=document.getElementById("gachaCost");
-    title.textContent = banner.title;
-    desc.textContent = banner.description;
-    cost.textContent = banner.type === "secretZ" ? "フードゴット・根源10個" : Util.formatYen(banner.cost);
-  }
-  summon(){
-    const banner = this.gachaSystem.getCurrentBanner();
-    if(banner.type === "secretZ"){
-      if(this.currency < 1000000){
-        this.noticeText.innerHTML = `<b>条件不足</b><br>シークレットZガチャは資金がKB単位のユーザー向けです。`;
-        this.popupController.show(this.noticePopup);
-        return;
-      }
-      this.currency = 0;
-      this.currencyUI.setCurrency(this.currency);
-      const result = this.gachaSystem.summon();
-      this.rareEffect.playSummon(result.god.rarity);
-      const inst = this.boardManager.addGod(result.god.id);
-      this.boardManager.showSynergyLabel("シークレットZ", inst.x, inst.y - 38);
-      this.recalculateStats();
-      this.saveGame();
-      return;
-    }
-    if(this.yen < banner.cost){
-      this.noticeText.innerHTML = `<b>所持金不足</b><br>必要: ${Util.formatYen(banner.cost)}<br>所持: ${Util.formatYen(this.yen)}`;
-      this.popupController.show(this.noticePopup);
-      return;
-    }
-    this.yen -= banner.cost;
-    this.currencyUI.setYen(this.yen);
-    const result = this.gachaSystem.summon();
-    this.rareEffect.playSummon(result.god.rarity);
-    const inst = this.boardManager.addGod(result.god.id);
-    if(result.god.rarity === "UltraRare" || result.god.rarity === "Secret") this.boardManager.showSynergyLabel(result.god.name, inst.x, inst.y - 38);
-    this.recalculateStats();
-    this.saveGame();
-  }
-  tryMerge(uidA,uidB){
-    const a=this.boardManager.getByUid(uidA), b=this.boardManager.getByUid(uidB);
-    if(!this.mergeSystem.canMerge(a,b)){ this.recalculateStats(); return; }
-    const result=this.mergeSystem.merge(a,b); if(!result) return;
-    this.boardManager.removeByUid(a.uid); this.boardManager.removeByUid(b.uid);
-    const newInst=this.boardManager.addGod(result.newGodId, result.x, result.y);
-    this.rareEffect.playMerge(result.data.rarity);
-    this.showMergePopup(result.data);
-    this.boardManager.showSynergyLabel("進化", newInst.x, newInst.y - 40);
-    if(result.data.id === "ss_food_ark"){
-      this.noticeText.innerHTML = `<b>到達</b><br>フードゴット・聖櫃を入手しました。`;
-      setTimeout(()=>this.popupController.show(this.noticePopup),300);
-    }
-    setTimeout(()=>{ this.recalculateStats(); this.saveGame(); },80);
-  }
-  showMergePopup(god){
-    this.mergeResultEmoji.classList.remove("hidden");
-    this.mergeResultImg.classList.add("hidden");
-    this.mergeResultEmoji.textContent = god.emojiFallback;
-    this.mergeResultName.textContent = god.name;
-    this.popupController.show(this.mergePopup);
-  }
-  showGodDetail(god){
-    const detailList=document.getElementById("detailList");
-    detailList.innerHTML = `
-      <b>${god.name}</b><br>
-      役割: ${god.role || ""}<br>
-      稀少度: ${god.rarity}<br>
-      進化先: ${god.evolveTo || "なし"}<br>
-      タグ: ${god.synergyTags.join(", ")}
-    `;
-    this.popupController.show(this.detailPopup);
-  }
-  applyLoginReward(reward){
-    if(reward.type==="umami") this.currency += reward.amount;
-    else if(reward.type==="rate") this.loginRareBoost = true;
-    else if(reward.type==="todaygod") this.todayGodBoost = true;
-    this.currencyUI.setCurrency(this.currency);
-    this.recalculateStats();
-  }
-  loadGame(){
-    const data = SaveManager.load();
-    if(!data){
-      this.currency=0; this.yen=this.gachaSystem.initialYen; this.boardManager.setInstances([]);
-      this.currencyUI.setCurrency(this.currency); this.currencyUI.setYen(this.yen);
-      return;
-    }
-    this.currency = data.currency || 0;
-    this.yen = Number.isFinite(data.yen) ? data.yen : this.gachaSystem.initialYen;
-    this.loginRareBoost = !!data.loginRareBoost;
-    this.todayGodBoost = !!data.todayGodBoost;
-    this.lastLoginBonusDate = data.lastLoginBonusDate || null;
-    this.umami = data.umami || 0;
-    this.boardManager.setInstances(data.instances || []);
-    this.currencyUI.setCurrency(this.currency);
-    this.currencyUI.setYen(this.yen);
-    const offlineReward = SaveManager.calcOfflineReward(data.lastSaveTime || Date.now(), this.productionPerSec);
-    if(offlineReward > 0){
-      this.currency += offlineReward;
-      this.currencyUI.setCurrency(this.currency);
-      this.noticeText.innerHTML = `<b>オフライン報酬</b><br>+${Util.formatNumber(offlineReward)} うまみ`;
-      this.popupController.show(this.noticePopup);
-    }
-  }
-  saveGame(){
-    SaveManager.save({
-      currency:this.currency,
-      yen:this.yen,
-      umami:this.umami || 0,
-      instances:this.boardManager.serialize(),
-      loginRareBoost:this.loginRareBoost,
-      todayGodBoost:this.todayGodBoost,
-      lastLoginBonusDate:this.lastLoginBonusDate || null,
-      lastSaveTime:Date.now()
-    });
-  }
-  startLoop(){
-    const loop=(now)=>{
-      const dt=(now-this.lastTickTime)/1000;
-      this.lastTickTime=now;
-      const gain=this.productionPerSec*dt;
-      if(gain>0){ this.currency += gain; this.currencyUI.setCurrency(this.currency); }
-      this.refreshBanner();
-      this.currencyUI.setYen(this.yen);
-      if(Date.now()-this.lastSaveTime > 10000){ this.saveGame(); this.lastSaveTime = Date.now(); }
-      requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
 }
-window.addEventListener("DOMContentLoaded",()=>{ window.game = new GameManager(); });
-</script>
+</code></pre>
+
+<pre><code>// CurrencyUIController.cs
+using TMPro;
+using UnityEngine;
+using System.Collections;
+
+public class CurrencyUIController : MonoBehaviour
+{
+    public TMP_Text currencyText;
+    public TMP_Text umamiText;
+    public TMP_Text perSecondText;
+    public TMP_Text tapGainText;
+    public TMP_Text synergyText;
+
+    public void UpdateAll(long currency, long umami, long perSec, long tap, float syn)
+    {
+        UpdateCurrency(currency);
+        UpdateUmami(umami);
+        UpdateProduction(perSec, tap, syn);
+    }
+
+    public void UpdateCurrency(long value) =&gt; currencyText.text = "¥" + NumberFormatUtil.Format(value);
+    public void UpdateUmami(long value) =&gt; umamiText.text = "旨味 " + NumberFormatUtil.Format(value);
+    public void UpdateProduction(long perSec, long tap, float syn)
+    {
+        perSecondText.text = "秒間 " + NumberFormatUtil.Format(perSec);
+        tapGainText.text = "タップ +" + NumberFormatUtil.Format(tap);
+        synergyText.text = "シナジー x" + syn.ToString("0.00");
+    }
+
+    public void SpawnTapText(long gain)
+    {
+    }
+
+    public void PlayBigGain(long amount)
+    {
+        StartCoroutine(BigGainRoutine(amount));
+    }
+
+    private IEnumerator BigGainRoutine(long amount)
+    {
+        currencyText.transform.localScale = Vector3.one * 1.15f;
+        yield return new WaitForSeconds(0.1f);
+        currencyText.transform.localScale = Vector3.one;
+    }
+}
+</code></pre>
+
+<pre><code>// LoginBonusController.cs
+using UnityEngine;
+using System;
+using System.Collections;
+
+public class LoginBonusController : MonoBehaviour
+{
+    public LoginBonusPopup popup;
+    public AudioManager audioManager;
+    public RareEffectController rareEffectController;
+
+    public void TryShowLoginBonus()
+    {
+        long today = DateTimeOffset.Now.ToUnixTimeSeconds();
+        popup.Show("本日のログインボーナス", "旨味ポイント +5000", OnClaim);
+        rareEffectController.PlayLoginFlash();
+    }
+
+    private void OnClaim()
+    {
+        audioManager.PlayStamp();
+        GameManager.Instance.AddCurrency(5000);
+    }
+}
+</code></pre>
+
+<pre><code>// PopupController.cs
+using UnityEngine;
+
+public class PopupController : MonoBehaviour
+{
+    public static PopupController Instance { get; private set; }
+
+    public GodDetailPopup godDetailPopup;
+    public NoticePopup noticePopup;
+    public ChallengePopup challengePopup;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public void ShowGodDetail(GodInstance god)
+    {
+        godDetailPopup.Show(god);
+    }
+}
+</code></pre>
+
+<pre><code>// AudioManager.cs
+using UnityEngine;
+
+public class AudioManager : MonoBehaviour
+{
+    public AudioSource se;
+    public AudioSource bgm;
+    public AudioClip tapClip;
+    public AudioClip mergeClip;
+    public AudioClip summonClip;
+    public AudioClip stampClip;
+
+    public void PlayTap() =&gt; se.PlayOneShot(tapClip);
+    public void PlayMerge() =&gt; se.PlayOneShot(mergeClip);
+    public void PlaySummon(GodRarity rarity) =&gt; se.PlayOneShot(summonClip);
+    public void PlayStamp() =&gt; se.PlayOneShot(stampClip);
+}
+</code></pre>
+
+<pre><code>// SaveManager.cs
+using UnityEngine;
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+public class SaveManager : MonoBehaviour
+{
+    private string Key =&gt; "foodgod_save";
+
+    public void Save(long currency, long umami, List&lt;string&gt; board)
+    {
+        var data = new SaveData
+        {
+            currency = currency.ToString(),
+            umami = umami.ToString(),
+            lastSaveUnix = DateTimeOffset.Now.ToUnixTimeSeconds(),
+            boardGodIds = board
+        };
+        PlayerPrefs.SetString(Key, JsonUtility.ToJson(data));
+        PlayerPrefs.Save();
+    }
+
+    public LoadedGameData Load()
+    {
+        if (!PlayerPrefs.HasKey(Key))
+        {
+            return new LoadedGameData { currencyValue = 50000, umamiValue = 0 };
+        }
+
+        var json = PlayerPrefs.GetString(Key);
+        var data = JsonUtility.FromJson&lt;SaveData&gt;(json);
+        return new LoadedGameData
+        {
+            currencyValue = long.TryParse(data.currency, out var c) ? c : 50000,
+            umamiValue = long.TryParse(data.umami, out var u) ? u : 0
+        };
+    }
+}
+
+public struct LoadedGameData
+{
+    public long currencyValue;
+    public long umamiValue;
+}
+</code></pre>
+
+<pre><code>// ButtonFeedback.cs
+using UnityEngine;
+using UnityEngine.EventSystems;
+using System.Collections;
+
+public class ButtonFeedback : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+{
+    public Vector3 pressedScale = Vector3.one * 0.95f;
+    public float popDuration = 0.08f;
+    private Vector3 baseScale;
+
+    private void Awake()
+    {
+        baseScale = transform.localScale;
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        StopAllCoroutines();
+        StartCoroutine(ScaleRoutine(pressedScale));
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        StopAllCoroutines();
+        StartCoroutine(ScaleRoutine(baseScale));
+    }
+
+    private IEnumerator ScaleRoutine(Vector3 target)
+    {
+        transform.localScale = target;
+        yield return new WaitForSeconds(popDuration);
+    }
+}
+</code></pre>
+
+<pre><code>// DragHandler.cs
+// 2Dモバイル用には EventSystem + Collider2D + Physics2DRaycaster を使う想定。
+using UnityEngine;
+using UnityEngine.EventSystems;
+
+public class DragHandler : MonoBehaviour
+{
+}
+</code></pre>
+
+<pre><code>// RareEffectController.cs
+using UnityEngine;
+using System.Collections;
+
+public class RareEffectController : MonoBehaviour
+{
+    public ParticleSystem commonEffect;
+    public ParticleSystem rareEffect;
+    public ParticleSystem ultraEffect;
+    public ParticleSystem secretEffect;
+    public ScreenFlash screenFlash;
+    public CameraShake cameraShake;
+
+    public void PlaySpawnEffect(GodData data, Vector3 pos)
+    {
+        if (data.rarity == GodRarity.Secret || data.rarity == GodRarity.SecretS || data.rarity == GodRarity.SecretZ)
+        {
+            PlaySecretSpawn(pos);
+        }
+        else if (data.rarity == GodRarity.UltraRare)
+        {
+            PlayUltraSpawn(pos);
+        }
+        else if (data.rarity == GodRarity.Rare)
+        {
+            PlayRareSpawn(pos);
+        }
+        else
+        {
+            PlayCommonSpawn(pos);
+        }
+    }
+
+    public void PlayMergeBurst(Vector3 pos)
+    {
+        screenFlash.Flash(0.2f);
+        cameraShake.Shake(0.2f, 0.15f);
+        if (secretEffect != null) secretEffect.Play();
+    }
+
+    public void PlayPlacementEffect(GodInstance god)
+    {
+        if (commonEffect != null) commonEffect.Play();
+    }
+
+    public void PlayLoginFlash()
+    {
+        screenFlash.Flash(0.18f);
+    }
+
+    private void PlayCommonSpawn(Vector3 pos) { if (commonEffect != null) commonEffect.Play(); }
+    private void PlayRareSpawn(Vector3 pos) { if (rareEffect != null) rareEffect.Play(); }
+    private void PlayUltraSpawn(Vector3 pos) { if (ultraEffect != null) ultraEffect.Play(); }
+    private void PlaySecretSpawn(Vector3 pos)
+    {
+        if (secretEffect != null) secretEffect.Play();
+        screenFlash.Flash(0.4f);
+    }
+}
+</code></pre>
+
+<pre><code>// NumberFormatUtil.cs
+using System.Globalization;
+
+public static class NumberFormatUtil
+{
+    public static string Format(long value)
+    {
+        if (value &lt; 1000) return value.ToString();
+        string[] suffix = { "", "K", "M", "B", "T", "Q" };
+        double v = value;
+        int i = 0;
+        while (v &gt;= 1000 && i &lt; suffix.Length - 1)
+        {
+            v /= 1000;
+            i++;
+        }
+        return v.ToString(v &gt;= 100 ? "0" : v &gt;= 10 ? "0.0" : "0.00", CultureInfo.InvariantCulture) + suffix[i];
+    }
+}
+</code></pre>
+
+<pre><code>// OfflineRewardCalculator.cs
+using System;
+
+public static class OfflineRewardCalculator
+{
+    public static long CalculateReward(DateTime last, DateTime now, long perSecond)
+    {
+        var seconds = Math.Max(0, (now - last).TotalSeconds);
+        seconds = Math.Min(seconds, 60 * 60 * 8);
+        return (long)(seconds * perSecond * 0.3f);
+    }
+}
+</code></pre>
+
+<h2>5. ガチャ設計</h2>
+<p>朝は normalgacha で ¥1000、昼は spgacha で ¥100000、特定時間帯は SecretZ Gacha を出し、所持金が KB 以上なら表示します。</p>
+
+<pre><code>// GachaController.cs
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GachaController : MonoBehaviour
+{
+    public Sprite normalGachaCover;
+    public Sprite specialGachaCover;
+    public Sprite secretZGachaCover;
+
+    public long normalPrice = 1000;
+    public long specialPrice = 100000;
+
+    public List&lt;GodData&gt; normalPool = new List&lt;GodData&gt;();
+    public List&lt;GodData&gt; specialPool = new List&lt;GodData&gt;();
+    public List&lt;GodData&gt; secretZPool = new List&lt;GodData&gt;();
+
+    public string GetCurrentGachaId()
+    {
+        var hour = DateTime.Now.Hour;
+        if ((hour &gt;= 6 && hour &lt; 8) || (hour &gt;= 17 && hour &lt; 20))
+            return "secretz";
+        return hour &lt; 12 ? "normalgacha" : "spgacha";
+    }
+
+    public long GetCurrentPrice()
+    {
+        string id = GetCurrentGachaId();
+        if (id == "normalgacha") return normalPrice;
+        if (id == "spgacha") return specialPrice;
+        return 0;
+    }
+
+    public Sprite GetCurrentCover()
+    {
+        string id = GetCurrentGachaId();
+        if (id == "normalgacha") return normalGachaCover;
+        if (id == "spgacha") return specialGachaCover;
+        return secretZGachaCover;
+    }
+
+    public GodData Roll()
+    {
+        string id = GetCurrentGachaId();
+        if (id == "normalgacha") return normalPool[UnityEngine.Random.Range(0, normalPool.Count)];
+        if (id == "spgacha") return specialPool[UnityEngine.Random.Range(0, specialPool.Count)];
+        return secretZPool[UnityEngine.Random.Range(0, secretZPool.Count)];
+    }
+}
+</code></pre>
+
+<h2>6. UI構成手順</h2>
+<ol>
+<li>Canvas を作成し、MainGameCanvas と PopupCanvas を分ける。</li>
+<li>メインUIに CurrencyText、UmamiText、PerSecondText、TapGainText、SynergyText を配置する。</li>
+<li>画面中央にタップ受けエリアを置き、TapMainArea を呼ぶ。</li>
+<li>神域は Grid/Anchor 付きの大きめの BoardRoot を用意する。</li>
+<li>各ポップアップは CanvasGroup 付きで、開閉をアニメーション化する。</li>
+</ol>
+
+<h2>7. Inspector設定例</h2>
+<ul>
+<li>GameManager に CurrencyUIController、SaveManager、AudioManager、LoginBonusController を接続。</li>
+<li>BoardAreaManager に slot 位置を 9〜16 個ほど登録。</li>
+<li>MergeSystem に MergeResultPopup、RareEffectController、CameraShake を接続。</li>
+<li>SynergySystem に SynergyData を 3〜5 個以上登録。</li>
+<li>GachaController に normal / special / secretZ の各プールを登録。</li>
+</ul>
+
+<h2>8. 仮素材向け演出</h2>
+<p>仮素材でも成立するよう、各 GodData に emojiFallback を設定してください。アイコン未設定時は絵文字を表示し、レア度に応じて色と発光量だけ変える構成です。</p>
+
+<h2>9. 拡張ポイント</h2>
+<ul>
+<li>GodData を ScriptableObject アセット化してキャラ追加を容易にする。</li>
+<li>シナジーをタグベースで増やす。</li>
+<li>ログボや日課を毎日更新に拡張する。</li>
+<li>限定キャラのガチャ排出率を時間帯ごとに変える。</li>
+<li>MergeResultPopup を Timeline / Animator 化する。</li>
+</ul>
+
 </body>
 </html>
