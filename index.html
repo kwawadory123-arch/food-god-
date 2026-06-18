@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>フードゴット・神威インフレ</title>
+  <style>
+    :root {
+      --bg1: #fff8ef;
+      --bg2: #fde9c8;
+      --ink: #4a2f20;
+      --gold: #f5c85c;
+      --gold-deep: #d89a16;
+      --rare: #58a6ff;
+      --ur: #d36cff;
+      --secret: #ffd700;
+      --board: #f6dfb4;
+      --wood: #b98143;
+      --danger: #ff6b6b;
+      --ok: #77c56b;
+      --panel: rgba(255,255,255,0.8);
+      --shadow: 0 8px 24px rgba(0,0,0,0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 50% 20%, #fff6d4 0%, #ffefbf 20%, transparent 35%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    #app {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .title-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at center, rgba(255,255,220,0.95), rgba(255,230,180,0.95)),
+        linear-gradient(180deg, #fffaf0, #f7dfb9);
+    }
+
+    .title-logo {
+      font-size: clamp(28px, 7vw, 48px);
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.15;
+      color: #7a3d00;
+      text-shadow:
+        0 3px 0 #fff,
+        0 6px 18px rgba(255,180,0,0.45);
+      margin-bottom: 14px;
+    }
+
+    .title-sub {
+      font-size: 14px;
+      opacity: 0.85;
+      margin-bottom: 26px;
+      text-align: center;
+    }
+
+    .menu-buttons {
+      width: min(92vw, 360px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transform: translateX(-120%);
+      animation: slideInMenu 0.75s ease-out forwards;
+    }
+
+    @keyframes slideInMenu {
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .btn {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 18px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #4b2d1c;
+      background: linear-gradient(180deg, #fff3cb, #f5c85c);
+      box-shadow:
+        0 5px 0 #d39f2c,
+        0 8px 18px rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
+    }
+
+    .btn:active,
+    .btn.pressed {
+      transform: translateY(4px) scale(0.98);
+      box-shadow:
+        0 1px 0 #d39f2c,
+        0 3px 10px rgba(0,0,0,0.12);
+    }
+
+    .btn.secondary {
+      background: linear-gradient(180deg, #ffffff, #e8e8e8);
+      box-shadow:
+        0 5px 0 #bdbdbd,
+        0 8px 18px rgba(0,0,0,0.12);
+    }
+
+    .game-screen {
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    .top-bar {
+      padding: 10px 12px 6px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .stat-card {
+      background: rgba(255,255,255,0.78);
+      border: 2px solid rgba(255,255,255,0.55);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 10px 12px;
+      backdrop-filter: blur(5px);
+    }
+
+    .stat-title {
+      font-size: 12px;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 900;
+      transform-origin: center;
+    }
+
+    .stat-value.pop {
+      animation: statPop 0.18s ease;
+    }
+
+    @keyframes statPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    .sub-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      padding: 0 12px 8px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sub-pill {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.8);
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .main-area {
+      position: relative;
+      overflow: hidden;
+      padding: 8px 10px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tap-area {
+      position: relative;
+      border-radius: 28px;
+      flex: 0 0 24%;
+      min-height: 130px;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.92), rgba(255,235,190,0.95)),
+        linear-gradient(180deg, #fff7dd, #ffe7a2);
+      box-shadow: inset 0 -10px 30px rgba(255,200,70,0.18), var(--shadow);
+      border: 2px solid rgba(255,255,255,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .tap-core {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 30%, #fffef6, #ffe89f 45%, #f8c93c 70%, #e5a412 100%);
+      box-shadow:
+        0 0 30px rgba(255,230,120,0.7),
+        0 0 70px rgba(255,220,70,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 46px;
+      transform: scale(1);
+      transition: transform 0.08s ease;
+    }
+
+    .tap-core.tapped {
+      transform: scale(0.92);
+    }
+
+    .tap-label {
+      position: absolute;
+      bottom: 10px;
+      font-weight: 900;
+      font-size: 16px;
+      color: #8b4e00;
+      text-shadow: 0 2px 0 rgba(255,255,255,0.8);
+    }
+
+    .board-area {
+      position: relative;
+      flex: 1;
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.35), transparent 60%),
+        linear-gradient(180deg, #f2deb5, #e9ca92);
+      box-shadow: inset 0 0 0 4px rgba(255,255,255,0.35), var(--shadow);
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    .board-title {
+      position: absolute;
+      top: 8px;
+      left: 12px;
+      font-size: 13px;
+      font-weight: 900;
+      color: rgba(90,50,15,0.85);
+      z-index: 2;
+    }
+
+    .god {
+      position: absolute;
+      width: 78px;
+      height: 90px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.68);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 4px;
+      transform-origin: center;
+      transition: box-shadow 0.12s ease, transform 0.12s ease, opacity 0.12s ease;
+      overflow: visible;
+    }
+
+    .god.dragging {
+      opacity: 0.72;
+      transform: scale(1.08);
+      z-index: 999;
+    }
+
+    .god.highlight {
+      box-shadow:
+        0 0 0 4px rgba(255,255,255,0.9),
+        0 0 24px rgba(255,220,90,0.95),
+        0 0 44px rgba(255,200,0,0.55);
+    }
+
+    .god.place-bounce {
+      animation: placeBounce 0.28s ease;
+    }
+
+    @keyframes placeBounce {
+      0% { transform: scale(0.75); }
+      60% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    .god-secret {
+      box-shadow:
+        0 0 18px rgba(255,240,120,0.65),
+        0 0 40px rgba(255,210,50,0.45),
+        0 8px 18px rgba(0,0,0,0.22);
+    }
+
+    .god-img {
+      width: 58px;
+      height: 58px;
+      margin-top: 2px;
+      object-fit: contain;
+      image-rendering: auto;
+      display: block;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.24);
+    }
+
+    .god-emoji {
+      width: 58px;
+      height: 58px;
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      line-height: 1;
+      transform-origin: center;
+    }
+
+    .god-name {
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+      padding: 2px 4px 0;
+      line-height: 1.1;
+    }
+
+    .god-rarity {
+      font-size: 9px;
+      font-weight: 900;
+      margin-top: 1px;
+    }
+
+    .rarity-common { color: #666; }
+    .rarity-rare { color: #3978ff; }
+    .rarity-ultrarare { color: #b236f2; }
+    .rarity-secret { color: #b88b00; }
+
+    .aura {
+      position: absolute;
+      inset: -10px;
+      border-radius: 24px;
+      opacity: 0.28;
+      filter: blur(8px);
+      pointer-events: none;
+    }
+
+    .synergy-line {
+      position: absolute;
+      height: 4px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.2), rgba(255,235,130,0.95), rgba(255,255,255,0.2));
+      transform-origin: left center;
+      border-radius: 999px;
+      box-shadow: 0 0 12px rgba(255,230,120,0.8);
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.9;
+    }
+
+    .synergy-label {
+      position: absolute;
+      padding: 6px 10px;
+      background: rgba(255,253,234,0.96);
+      border: 2px solid rgba(255,220,120,0.9);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      box-shadow: var(--shadow);
+      pointer-events: none;
+      z-index: 50;
+      animation: synergyFade 1.2s ease forwards;
+    }
+
+    @keyframes synergyFade {
+      0% { transform: translateY(8px) scale(0.8); opacity: 0; }
+      20% { transform: translateY(0) scale(1); opacity: 1; }
+      80% { transform: translateY(-6px) scale(1); opacity: 1; }
+      100% { transform: translateY(-16px) scale(0.94); opacity: 0; }
+    }
+
+    .bottom-ui {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 8px 10px 10px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .gacha-card, .action-card {
+      background: rgba(255,255,255,0.8);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 8px;
+      min-height: 118px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .gacha-cover-wrap {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .gacha-cover {
+      width: 78px;
+      height: 78px;
+      border-radius: 14px;
+      object-fit: cover;
+      background: rgba(255,255,255,0.4);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.5);
+    }
+
+    .gacha-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .gacha-title {
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .gacha-desc {
+      font-size: 11px;
+      opacity: 0.8;
+      line-height: 1.3;
+    }
+
+    .gacha-cost {
+      font-size: 13px;
+      font-weight: 900;
+      color: #8b2d00;
+    }
+
+    .tiny-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tiny-btn {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+      padding: 10px 8px;
+      border-radius: 14px;
+    }
+
+    .floating-number {
+      position: absolute;
+      font-weight: 900;
+      pointer-events: none;
+      z-index: 40;
+      text-shadow: 0 2px 0 rgba(255,255,255,0.9);
+      animation: floatUp 0.85s ease-out forwards;
+      white-space: nowrap;
+    }
+
+    @keyframes floatUp {
+      0% { transform: translate(-50%, 0) scale(0.8); opacity: 0; }
+      15% { transform: translate(-50%, -8px) scale(1.08); opacity: 1; }
+      100% { transform: translate(-50%, -52px) scale(1); opacity: 0; }
+    }
+
+    .flash-overlay,
+    .rare-overlay,
+    .merge-beam,
+    .sunburst,
+    .screen-dim {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .flash-overlay {
+      background: rgba(255,255,255,0);
+      z-index: 60;
+    }
+
+    .flash-overlay.active {
+      animation: flashPulse 0.35s ease;
+    }
+
+    @keyframes flashPulse {
+      0% { background: rgba(255,255,255,0); }
+      30% { background: rgba(255,255,255,0.65); }
+      100% { background: rgba(255,255,255,0); }
+    }
+
+    .rare-overlay.active {
+      background:
+        linear-gradient(120deg, transparent 0%, rgba(255,255,255,0.0) 35%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.0) 65%, transparent 100%);
+      animation: rareSweep 0.6s ease;
+      z-index: 62;
+    }
+
+    @keyframes rareSweep {
+      0% { transform: translateX(-100%); opacity: 0.2; }
+      30% { opacity: 1; }
+      100% { transform: translateX(100%); opacity: 0; }
+    }
+
+    .merge-beam {
+      z-index: 58;
+      display: none;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0), rgba(255,245,180,0.95), rgba(255,255,255,0));
+      opacity: 0;
+    }
+
+    .merge-beam.active {
+      display: block;
+      animation: beamFlash 0.55s ease;
+    }
+
+    @keyframes beamFlash {
+      0% { opacity: 0; }
+      20% { opacity: 0.95; }
+      100% { opacity: 0; }
+    }
+
+    .sunburst {
+      z-index: 57;
+      display: none;
+      opacity: 0;
+      background:
+        radial-gradient(circle at center, rgba(255,249,190,0.9) 0%, rgba(255,232,122,0.55) 18%, rgba(255,215,0,0.14) 35%, transparent 58%);
+    }
+
+    .sunburst.active {
+      display: block;
+      animation: sunburstPulse 0.8s ease;
+    }
+
+    @keyframes sunburstPulse {
+      0% { opacity: 0; transform: scale(0.6); }
+      35% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0; transform: scale(1.4); }
+    }
+
+    .shake {
+      animation: screenShake 0.3s ease;
+    }
+
+    @keyframes screenShake {
+      0% { transform: translate(0,0); }
+      20% { transform: translate(-3px,1px); }
+      40% { transform: translate(3px,-1px); }
+      60% { transform: translate(-2px,1px); }
+      80% { transform: translate(2px,-1px); }
+      100% { transform: translate(0,0); }
+    }
+
+    .popup-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .screen-dim {
+      background: rgba(48, 26, 8, 0.45);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .screen-dim.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, 100vh) scale(0.9);
+      width: min(92vw, 420px);
+      border-radius: 24px;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+      opacity: 0;
+      transition: transform 0.28s ease, opacity 0.28s ease;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+
+    .popup.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    .wood-popup {
+      background:
+        linear-gradient(180deg, #f7e4bb, #ebcc90);
+      border: 8px solid #b57a3f;
+    }
+
+    .popup-header {
+      padding: 14px 16px 8px;
+      font-size: 20px;
+      font-weight: 900;
+      text-align: center;
+      color: #6d3600;
+    }
+
+    .popup-body {
+      padding: 8px 14px 16px;
+    }
+
+    .merge-spotlight {
+      position: relative;
+      height: 220px;
+      border-radius: 18px;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.95), rgba(255,233,150,0.85), rgba(255,204,80,0.38), transparent 75%);
+      overflow: hidden;
+    }
+
+    .merge-name {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.92);
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .merge-result-img {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%) scale(0.5);
+      width: 132px;
+      height: 132px;
+      object-fit: contain;
+      opacity: 0;
+      animation: revealMergeResult 0.55s ease forwards;
+    }
+
+    .merge-result-emoji {
+      position: absolute;
+      left: 50%;
+      top: 46%;
+      transform: translate(-50%, -50%) scale(0.5);
+      width: 132px;
+      height: 132px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 94px;
+      opacity: 0;
+      animation: revealMergeResult 0.55s ease forwards;
+    }
+
+    @keyframes revealMergeResult {
+      0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.14); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .reward-text {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: #8a2500;
+      text-shadow: 0 3px 0 rgba(255,255,255,0.9);
+      margin: 8px 0 14px;
+      animation: rewardPop 0.35s ease;
+    }
+
+    @keyframes rewardPop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .login-board {
+      position: absolute;
+      left: 50%;
+      top: -120%;
+      transform: translateX(-50%);
+      width: min(92vw, 420px);
+      background:
+        linear-gradient(180deg, #f4e1b9, #e6c789);
+      border: 8px solid #aa6d36;
+      border-radius: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+      z-index: 120;
+      opacity: 0;
+      pointer-events: auto;
+    }
+
+    .login-board.show {
+      animation: boardDrop 0.45s ease forwards;
+    }
+
+    .login-board.hide {
+      animation: boardUp 0.32s ease forwards;
+    }
+
+    @keyframes boardDrop {
+      0% { top: -120%; opacity: 0; }
+      70% { top: 10%; opacity: 1; }
+      100% { top: 12%; opacity: 1; }
+    }
+
+    @keyframes boardUp {
+      0% { top: 12%; opacity: 1; }
+      100% { top: -120%; opacity: 0; }
+    }
+
+    .board-header {
+      padding: 16px 16px 8px;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: #6f3b06;
+    }
+
+    .board-content {
+      padding: 0 16px 18px;
+    }
+
+    .bonus-box {
+      background: rgba(255,255,255,0.6);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.4);
+      position: relative;
+      overflow: hidden;
+      min-height: 148px;
+    }
+
+    .stamp {
+      position: absolute;
+      right: 14px;
+      bottom: 12px;
+      width: 92px;
+      height: 92px;
+      border: 5px solid rgba(180,0,0,0.8);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(180,0,0,0.85);
+      font-size: 22px;
+      font-weight: 900;
+      transform: scale(2.2) rotate(-18deg);
+      opacity: 0;
+      background: rgba(255,255,255,0.16);
+    }
+
+    .stamp.hit {
+      animation: stampHit 0.35s ease forwards;
+    }
+
+    @keyframes stampHit {
+      0% { transform: scale(2.2) rotate(-18deg); opacity: 0; }
+      75% { transform: scale(0.88) rotate(-10deg); opacity: 1; }
+      100% { transform: scale(1) rotate(-12deg); opacity: 1; }
+    }
+
+    .reward-burst {
+      position: absolute;
+      z-index: 130;
+      font-size: 34px;
+      animation: rewardBurst 0.8s ease forwards;
+      pointer-events: none;
+    }
+
+    @keyframes rewardBurst {
+      0% { transform: translate(0,0) scale(0.6); opacity: 0; }
+      20% { opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(1.2); opacity: 0; }
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 92px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .detail-img {
+      width: 92px;
+      height: 92px;
+      object-fit: contain;
+      background: rgba(255,255,255,0.4);
+      border-radius: 16px;
+    }
+
+    .detail-emoji {
+      width: 92px;
+      height: 92px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 64px;
+      background: rgba(255,255,255,0.4);
+      border-radius: 16px;
+    }
+
+    .detail-list {
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .notice-text,
+    .challenge-text {
+      font-size: 14px;
+      line-height: 1.7;
+      background: rgba(255,255,255,0.55);
+      padding: 12px;
+      border-radius: 14px;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .footer-actions .btn {
+      flex: 1;
+      font-size: 14px;
+      padding: 12px 10px;
+    }
+
+    .mini-note {
+      font-size: 11px;
+      opacity: 0.74;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .glow-big {
+      animation: glowBig 0.5s ease;
+    }
+
+    @keyframes glowBig {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(1.45); }
+      100% { filter: brightness(1); }
+    }
+
+    .text-gold {
+      color: #a66200;
+    }
+
+    .text-secret {
+      color: #8e6a00;
+      text-shadow: 0 0 8px rgba(255,220,50,0.7);
+    }
+
+    .longpress-ring {
+      position: absolute;
+      width: 64px;
+      height: 64px;
+      border: 4px solid rgba(255,255,255,0.9);
+      border-top-color: rgba(255,220,70,1);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 70;
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="flashOverlay" class="flash-overlay"></div>
+    <div id="rareOverlay" class="rare-overlay"></div>
+    <div id="mergeBeam" class="merge-beam"></div>
+    <div id="sunburst" class="sunburst"></div>
+
+    <section id="titleScreen" class="screen title-screen">
+      <div class="title-logo">フードゴット・神威インフレ</div>
+      <div class="title-sub">クリッカー × マージ × シナジー × 短時間インフレ</div>
+      <div class="menu-buttons">
+        <button id="startBtn" class="btn">スタート</button>
+        <button id="noticeBtn" class="btn secondary">お知らせ</button>
+        <button id="challengeBtn" class="btn secondary">神威チャレンジ</button>
+        <button id="resetBtn" class="btn secondary">セーブ初期化</button>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen hidden">
+      <div class="top-bar">
+        <div class="stat-card">
+          <div class="stat-title">旨味ポイント</div>
+          <div id="currencyValue" class="stat-value">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">所持金</div>
+          <div id="yenValue" class="stat-value">¥0</div>
+        </div>
+      </div>
+
+      <div class="sub-bar">
+        <div class="sub-pill">秒間: <span id="productionValue">0</span></div>
+        <div class="sub-pill">タップ: <span id="tapValue">1</span></div>
+        <div class="sub-pill">シナジー: <span id="synergyValue">x1.00</span></div>
+      </div>
+
+      <div class="main-area">
+        <div id="tapArea" class="tap-area">
+          <div id="tapCore" class="tap-core">🍜</div>
+          <div class="tap-label">タップして旨味を獲得</div>
+        </div>
+
+        <div id="boardArea" class="board-area">
+          <div class="board-title">神域</div>
+        </div>
+      </div>
+
+      <div class="bottom-ui">
+        <div class="gacha-card">
+          <div class="gacha-cover-wrap">
+            <img id="gachaCover" class="gacha-cover" src="" alt="ガチャ表紙" />
+            <div class="gacha-meta">
+              <div id="gachaTitle" class="gacha-title">通常ガチャ</div>
+              <div id="gachaDesc" class="gacha-desc">午前限定の通常召喚。食の神々を招来する。</div>
+              <div id="gachaCost" class="gacha-cost">¥1000</div>
+            </div>
+          </div>
+          <div class="tiny-row">
+            <button id="summonBtn" class="btn tiny-btn">召喚</button>
+            <button id="saveBtn" class="btn secondary tiny-btn">保存</button>
+          </div>
+        </div>
+
+        <div class="action-card">
+          <div class="gacha-meta">
+            <div class="gacha-title">操作メニュー</div>
+            <div class="gacha-desc">長押しで詳細。近くに置くとシナジー。同種同ランクでマージ。</div>
+            <div class="mini-note">Secret は周囲強化オーラあり。午後は期間限定ガチャに切替。</div>
+          </div>
+          <div class="tiny-row">
+            <button id="backTitleBtn" class="btn secondary tiny-btn">タイトル</button>
+            <button id="todayGodBtn" class="btn tiny-btn">今日の神</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="popupLayer" class="popup-layer">
+      <div id="screenDim" class="screen-dim"></div>
+
+      <div id="mergePopup" class="popup wood-popup hidden">
+        <div class="popup-header">神進化成功</div>
+        <div class="popup-body">
+          <div class="reward-text">新キャラ獲得</div>
+          <div class="merge-spotlight">
+            <img id="mergeResultImg" class="merge-result-img hidden" src="" alt="merge result" />
+            <div id="mergeResultEmoji" class="merge-result-emoji hidden"></div>
+            <div id="mergeResultName" class="merge-name"></div>
+          </div>
+          <div class="footer-actions">
+            <button id="mergeCloseBtn" class="btn">閉じる</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="detailPopup" class="popup wood-popup hidden">
+        <div class="popup-header">ゴット詳細</div>
+        <div class="popup-body">
+          <div class="detail-grid">
+            <img id="detailImg" class="detail-img hidden" src="" alt="detail image" />
+            <div id="detailEmoji" class="detail-emoji hidden"></div>
+            <div id="detailList" class="detail-list"></div>
+          </div>
+          <div class="footer-actions">
+            <button id="detailCloseBtn" class="btn">閉じる</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="noticePopup" class="popup wood-popup hidden">
+        <div class="popup-header">お知らせ</div>
+        <div class="popup-body">
+          <div class="notice-text">
+            神味インフレの試作版です。<br />
+            - タップで旨味獲得<br />
+            - 召喚して神域へ配置<br />
+            - 同一神を重ねて進化<br />
+            - 近接配置でシナジー発動<br />
+            - ログインボーナスと簡易オフライン報酬あり
+          </div>
+          <div class="footer-actions">
+            <button id="noticeCloseBtn" class="btn">閉じる</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="challengePopup" class="popup wood-popup hidden">
+        <div class="popup-header">神威チャレンジ</div>
+        <div class="popup-body">
+          <div class="challenge-text">
+            制限時間 3分 の簡易目標です。<br />
+            目標: 旨味ポイントを 1,000,000 以上にする。<br />
+            現在の試作版では表示のみですが、将来は報酬付与に拡張しやすい構造です。
+          </div>
+          <div class="footer-actions">
+            <button id="challengeCloseBtn" class="btn">閉じる</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="loginBoard" class="login-board hidden">
+        <div class="board-header">本日のログインボーナス</div>
+        <div class="board-content">
+          <div class="bonus-box">
+            <div id="loginRewardText" class="reward-text">旨味ポイントをゲットしました</div>
+            <div id="loginRewardDetail" class="notice-text" style="font-size:13px; margin:0;">
+              本日の報酬内容
+            </div>
+            <div id="loginStamp" class="stamp">済</div>
+          </div>
+          <div class="footer-actions" style="margin-top:12px;">
+            <button id="loginCloseBtn" class="btn">閉じる</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    class Util {
+      static clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      static dist(ax, ay, bx, by) {
+        const dx = ax - bx;
+        const dy = ay - by;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      static formatNumber(num) {
+        if (!isFinite(num)) return "0";
+        if (num < 1000) return Math.floor(num).toString();
+        const units = ["", "K", "M", "B", "T", "Qa", "Qi", "Sx"];
+        let unit = 0;
+        let value = num;
+        while (value >= 1000 && unit < units.length - 1) {
+          value /= 1000;
+          unit++;
+        }
+        return value.toFixed(value >= 100 ? 0 : value >= 10 ? 1 : 2) + units[unit];
+      }
+
+      static formatYen(num) {
+        return "¥" + Math.floor(num).toLocaleString("ja-JP");
+      }
+
+      static todayKey() {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return y + "-" + m + "-" + day;
+      }
+
+      static nowHour() {
+        return new Date().getHours();
+      }
+
+      static randomChoice(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      static chance(weightedList) {
+        const total = weightedList.reduce((a, b) => a + b.weight, 0);
+        let roll = Math.random() * total;
+        for (const item of weightedList) {
+          roll -= item.weight;
+          if (roll <= 0) return item;
+        }
+        return weightedList[weightedList.length - 1];
+      }
+
+      static sanitizeImageKey(str) {
+        return String(str || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "");
+      }
+    }
+
+    class AudioManager {
+      constructor() {
+        this.ctx = null;
+      }
+
+      ensure() {
+        if (!this.ctx) {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          if (Ctx) this.ctx = new Ctx();
+        }
+      }
+
+      beep(freq = 440, duration = 0.06, type = "sine", gainValue = 0.03) {
+        this.ensure();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.value = gainValue;
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+        osc.stop(this.ctx.currentTime + duration);
+      }
+
+      tap() {
+        this.beep(700, 0.05, "triangle", 0.025);
+      }
+
+      place() {
+        this.beep(520, 0.08, "sine", 0.03);
+      }
+
+      stamp() {
+        this.beep(220, 0.08, "square", 0.04);
+      }
+
+      merge() {
+        this.beep(880, 0.12, "sawtooth", 0.035);
+        setTimeout(() => this.beep(1040, 0.18, "triangle", 0.028), 50);
+      }
+
+      rare() {
+        this.beep(1100, 0.15, "triangle", 0.04);
+        setTimeout(() => this.beep(1380, 0.22, "sine", 0.03), 80);
+      }
+
+      secret() {
+        this.beep(330, 0.18, "sawtooth", 0.05);
+        setTimeout(() => this.beep(660, 0.22, "triangle", 0.04), 100);
+        setTimeout(() => this.beep(1320, 0.3, "sine", 0.03), 180);
+      }
+
+      button() {
+        this.beep(430, 0.05, "square", 0.02);
+      }
+    }
+
+    class SaveManager {
+      static get KEY() { return "foodgod_kamui_inflation_save_v1"; }
+
+      static save(data) {
+        localStorage.setItem(this.KEY, JSON.stringify(data));
+      }
+
+      static load() {
+        const raw = localStorage.getItem(this.KEY);
+        if (!raw) return null;
+        try {
+          return JSON.parse(raw);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      static clear() {
+        localStorage.removeItem(this.KEY);
+      }
+
+      static calcOfflineReward(lastTime, productionPerSec) {
+        if (!lastTime) return 0;
+        const now = Date.now();
+        const deltaSec = Math.max(0, (now - lastTime) / 1000);
+        const capped = Math.min(deltaSec, 60 * 60 * 4);
+        return Math.floor(productionPerSec * capped * 0.35);
+      }
+    }
+
+    class PopupController {
+      constructor(dim) {
+        this.dim = dim;
+      }
+
+      show(popup) {
+        this.dim.classList.add("show");
+        popup.classList.remove("hidden");
+        requestAnimationFrame(() => popup.classList.add("show"));
+      }
+
+      hide(popup) {
+        popup.classList.remove("show");
+        setTimeout(() => {
+          popup.classList.add("hidden");
+          if (![...document.querySelectorAll(".popup.show")].length && document.getElementById("loginBoard").classList.contains("hidden")) {
+            this.dim.classList.remove("show");
+          }
+        }, 220);
+      }
+
+      showDim() {
+        this.dim.classList.add("show");
+      }
+
+      hideDimIfPossible() {
+        const anyPopupOpen = [...document.querySelectorAll(".popup.show")].length > 0;
+        const loginBoard = document.getElementById("loginBoard");
+        const loginOpen = !loginBoard.classList.contains("hidden");
+        if (!anyPopupOpen && !loginOpen) {
+          this.dim.classList.remove("show");
+        }
+      }
+    }
+
+    class ButtonFeedback {
+      static bindAll(audio) {
+        document.querySelectorAll(".btn").forEach(btn => {
+          btn.addEventListener("pointerdown", () => {
+            btn.classList.add("pressed");
+            audio.button();
+          });
+          const clear = () => btn.classList.remove("pressed");
+          btn.addEventListener("pointerup", clear);
+          btn.addEventListener("pointercancel", clear);
+          btn.addEventListener("pointerleave", clear);
+        });
+      }
+    }
+
+    class RareEffectController {
+      constructor(audio) {
+        this.audio = audio;
+        this.flashOverlay = document.getElementById("flashOverlay");
+        this.rareOverlay = document.getElementById("rareOverlay");
+        this.mergeBeam = document.getElementById("mergeBeam");
+        this.sunburst = document.getElementById("sunburst");
+        this.app = document.getElementById("app");
+      }
+
+      flash() {
+        this.flashOverlay.classList.remove("active");
+        void this.flashOverlay.offsetWidth;
+        this.flashOverlay.classList.add("active");
+      }
+
+      rareSweep() {
+        this.rareOverlay.classList.remove("active");
+        void this.rareOverlay.offsetWidth;
+        this.rareOverlay.classList.add("active");
+      }
+
+      mergeBurst() {
+        this.mergeBeam.classList.remove("active");
+        this.sunburst.classList.remove("active");
+        void this.mergeBeam.offsetWidth;
+        this.mergeBeam.classList.add("active");
+        this.sunburst.classList.add("active");
+        this.app.classList.add("shake");
+        setTimeout(() => this.app.classList.remove("shake"), 320);
+      }
+
+      playSummon(rarity) {
+        this.flash();
+        if (rarity === "UltraRare") {
+          this.rareSweep();
+          this.audio.rare();
+        } else if (rarity === "Secret") {
+          this.flash();
+          setTimeout(() => this.flash(), 90);
+          this.rareSweep();
+          this.audio.secret();
+        } else if (rarity === "Rare") {
+          this.audio.rare();
+        }
+      }
+
+      playMerge(rarity) {
+        this.mergeBurst();
+        if (rarity === "Secret") {
+          this.audio.secret();
+        } else {
+          this.audio.merge();
+        }
+      }
+    }
+
+    class GodDatabase {
+      constructor() {
+        this.gods = this.buildGods();
+        this.map = new Map(this.gods.map(g => [g.id, g]));
+      }
+
+      get(id) {
+        return this.map.get(id);
+      }
+
+      getAll() {
+        return this.gods;
+      }
+
+      buildGods() {
+        const make = (id, name, imageKey, rarity, rank, baseProduction, tapBonus, synergyTags, evolveTo, emojiFallback, auraColor, rareEffect = "") => ({
+          id, name, imageKey, rarity, rank, baseProduction, tapBonus, synergyTags, evolveTo, emojiFallback, auraColor, rareEffect
+        });
+
+        return [
+          make("ramen_kami", "ラーメン神", "ramenkami", "Common", 1, 5, 1, ["chinese", "noodle"], "ramen_ultimate", "🍜", "#ffd67d"),
+          make("gyoza_kami", "餃子神", "gyozakami", "Common", 1, 6, 1, ["chinese"], "gyoza_rare", "🥟", "#ffd29b"),
+          make("sushi_kami", "寿司神", "sushikami", "Rare", 1, 12, 2, ["japanese", "sea"], "sushi_kamii", "🍣", "#9ed4ff"),
+          make("greentea_kami", "緑茶神", "matchakami", "Common", 1, 8, 1, ["japanese", "tea"], "matcha_parfait_kami", "🍵", "#b9ef9f"),
+          make("bread_kami", "breadkami", "breadkami", "Common", 1, 7, 1, ["morning", "wheat"], "hotcake_kami", "🍞", "#f0cb8f"),
+          make("coffee_kami", "coffeekami", "coffeekami", "Rare", 1, 14, 2, ["morning", "coffee"], "tiramisu_kami", "☕", "#b28a68"),
+
+          make("ramen_ultimate", "ラーメン極神", "ultimateramenkami", "UltraRare", 2, 80, 8, ["chinese", "noodle", "divine"], "awakened_ramen", "🍜", "#ffcd53", "glow"),
+          make("gyoza_rare", "餃子神・神味", "gyozakami", "Rare", 2, 34, 3, ["chinese"], "gyoza_ultra", "🥟", "#ffc989"),
+          make("sushi_kamii", "寿司・神威", "sushikamii", "Rare", 2, 42, 4, ["japanese", "sea"], "sushi_dragon", "🍣", "#7cc8ff"),
+          make("matcha_parfait_kami", "抹茶パフェ神", "matchaparfaitkami", "Rare", 2, 38, 3, ["japanese", "tea"], "fruit_amaterasu", "🍨", "#91efb7"),
+          make("hotcake_kami", "ホットケーキ神", "hotcakekami", "Rare", 2, 36, 3, ["morning", "wheat"], "pizza_flame", "🥞", "#f0c274"),
+          make("tiramisu_kami", "ティラミス神", "tiramisukami", "Rare", 2, 44, 4, ["morning", "coffee"], "steak_overlord", "🍰", "#a87c65"),
+
+          make("awakened_ramen", "ラーメン神・覚醒", "awakenedramenkami", "UltraRare", 3, 420, 28, ["chinese", "noodle", "divine"], "final_ramen", "🍜", "#ffd84c", "glow"),
+          make("gyoza_ultra", "餃子皇神", "gyozakami", "UltraRare", 3, 210, 18, ["chinese", "divine"], "food_god_origin", "🥟", "#ffb770", "glow"),
+          make("sushi_dragon", "寿司龍神", "sushidragonkami", "Secret", 3, 1000, 65, ["japanese", "sea", "secret"], "food_god_origin", "🐉", "#ffe680", "secret"),
+          make("fruit_amaterasu", "フルーツ神・天照", "fruitamaterasukami", "Secret", 3, 1200, 75, ["japanese", "secret", "blessing"], "food_god_origin", "🍇", "#fff27a", "secret"),
+          make("pizza_flame", "ピザ・神炎", "pizzaflamekami", "UltraRare", 3, 300, 20, ["morning", "flame", "divine"], "food_god_origin", "🍕", "#ffb04a", "glow"),
+          make("steak_overlord", "ステーキ・覇王", "steakoverlordkami", "Secret", 3, 1350, 85, ["royal", "secret"], "food_god_origin", "🥩", "#ffd766", "secret"),
+
+          make("final_ramen", "ラーメン神・終焉", "finalramenkami", "Secret", 4, 3200, 180, ["secret", "ultimate"], "food_god_origin", "🍜", "#ffe261", "secret"),
+          make("food_god_origin", "フードゴット・根源", "foodgodorigin", "Secret", 5, 10000, 500, ["origin", "secret", "all"], null, "✨", "#fff29d", "secret")
+        ];
+      }
+    }
+
+    class GodInstance {
+      constructor(uid, godId, x, y) {
+        this.uid = uid;
+        this.godId = godId;
+        this.x = x;
+        this.y = y;
+      }
+    }
+
+    class SynergySystem {
+      constructor() {
+        this.definitions = [
+          {
+            id: "chinese_synergy",
+            name: "中華シナジー",
+            tagsA: ["chinese", "noodle"],
+            tagsB: ["chinese"],
+            multiplier: 1.35
+          },
+          {
+            id: "japanese_synergy",
+            name: "和食シナジー",
+            tagsA: ["japanese", "sea"],
+            tagsB: ["japanese", "tea"],
+            multiplier: 1.45
+          },
+          {
+            id: "morning_synergy",
+            name: "モーニングシナジー",
+            tagsA: ["morning", "wheat"],
+            tagsB: ["morning", "coffee"],
+            multiplier: 1.4
+          }
+        ];
+      }
+
+      hasAllTags(god, tags) {
+        return tags.every(tag => god.synergyTags.includes(tag));
+      }
+
+      calculate(instances, godDb, distanceThreshold = 110) {
+        const activePairs = [];
+        let multiplier = 1;
+
+        for (let i = 0; i < instances.length; i++) {
+          for (let j = i + 1; j < instances.length; j++) {
+            const a = instances[i];
+            const b = instances[j];
+            const godA = godDb.get(a.godId);
+            const godB = godDb.get(b.godId);
+            const d = Util.dist(a.x, a.y, b.x, b.y);
+            if (d > distanceThreshold) continue;
+
+            for (const def of this.definitions) {
+              const aMatch = this.hasAllTags(godA, def.tagsA) && this.hasAllTags(godB, def.tagsB);
+              const bMatch = this.hasAllTags(godB, def.tagsA) && this.hasAllTags(godA, def.tagsB);
+              if (aMatch || bMatch) {
+                activePairs.push({
+                  name: def.name,
+                  aUid: a.uid,
+                  bUid: b.uid,
+                  ax: a.x, ay: a.y,
+                  bx: b.x, by: b.y
+                });
+                multiplier *= def.multiplier;
+                break;
+              }
+            }
+          }
+        }
+
+        multiplier = Math.min(multiplier, 25);
+        return { multiplier, activePairs };
+      }
+    }
+
+    class MergeSystem {
+      constructor(godDb) {
+        this.godDb = godDb;
+      }
+
+      canMerge(instA, instB) {
+        if (!instA || !instB) return false;
+        const godA = this.godDb.get(instA.godId);
+        const godB = this.godDb.get(instB.godId);
+        if (!godA || !godB) return false;
+        return godA.id === godB.id && godA.rank === godB.rank && !!godA.evolveTo;
+      }
+
+      merge(instA, instB) {
+        const base = this.godDb.get(instA.godId);
+        if (!base || !base.evolveTo) return null;
+        const evolved = this.godDb.get(base.evolveTo);
+        if (!evolved) return null;
+        return {
+          newGodId: evolved.id,
+          x: (instA.x + instB.x) / 2,
+          y: (instA.y + instB.y) / 2,
+          data: evolved
+        };
+      }
+    }
+
+    class GachaSystem {
+      constructor(godDb) {
+        this.godDb = godDb;
+        this.initialYen = 50000;
+      }
+
+      getCurrentBanner() {
+        const hour = Util.nowHour();
+        const isMorning = hour >= 0 && hour <= 11;
+        if (isMorning) {
+          return {
+            type: "normal",
+            title: "通常ガチャ",
+            imageKey: "normalgacha",
+            cost: 1000,
+            description: "午前限定の通常召喚。基本ゴット中心。",
+            pool: [
+              { godId: "ramen_kami", weight: 28 },
+              { godId: "gyoza_kami", weight: 28 },
+              { godId: "greentea_kami", weight: 18 },
+              { godId: "bread_kami", weight: 16 },
+              { godId: "sushi_kami", weight: 7 },
+              { godId: "coffee_kami", weight: 3 }
+            ]
+          };
+        }
+        return {
+          type: "special",
+          title: "期間限定ガチャ",
+          imageKey: "spgacha",
+          cost: 100000,
+          description: "午後限定の特別召喚。将来は限定キャラ追加予定。",
+          pool: [
+            { godId: "ramen_kami", weight: 18 },
+            { godId: "gyoza_kami", weight: 18 },
+            { godId: "greentea_kami", weight: 14 },
+            { godId: "bread_kami", weight: 14 },
+            { godId: "sushi_kami", weight: 14 },
+            { godId: "coffee_kami", weight: 10 },
+            { godId: "ramen_ultimate", weight: 6 },
+            { godId: "sushi_dragon", weight: 1 }
+          ],
+          limitedPool: []
+        };
+      }
+
+      summon() {
+        const banner = this.getCurrentBanner();
+        const result = Util.chance(banner.pool);
+        return {
+          banner,
+          god: this.godDb.get(result.godId)
+        };
+      }
+    }
+
+    class CurrencyUIController {
+      constructor() {
+        this.currencyValue = document.getElementById("currencyValue");
+        this.yenValue = document.getElementById("yenValue");
+        this.productionValue = document.getElementById("productionValue");
+        this.tapValue = document.getElementById("tapValue");
+        this.synergyValue = document.getElementById("synergyValue");
+      }
+
+      setCurrency(value) {
+        this.currencyValue.textContent = Util.formatNumber(value);
+        this.currencyValue.classList.remove("pop");
+        void this.currencyValue.offsetWidth;
+        this.currencyValue.classList.add("pop");
+        if (value >= 1000000) {
+          this.currencyValue.classList.add("glow-big");
+          setTimeout(() => this.currencyValue.classList.remove("glow-big"), 420);
+        }
+      }
+
+      setYen(value) {
+        this.yenValue.textContent = Util.formatYen(value);
+        this.yenValue.classList.remove("pop");
+        void this.yenValue.offsetWidth;
+        this.yenValue.classList.add("pop");
+      }
+
+      setProduction(value) {
+        this.productionValue.textContent = Util.formatNumber(value);
+      }
+
+      setTap(value) {
+        this.tapValue.textContent = Util.formatNumber(value);
+      }
+
+      setSynergy(mult) {
+        this.synergyValue.textContent = "x" + mult.toFixed(2);
+      }
+    }
+
+    class LoginBonusController {
+      constructor(audio, popupController) {
+        this.audio = audio;
+        this.popupController = popupController;
+        this.board = document.getElementById("loginBoard");
+        this.rewardText = document.getElementById("loginRewardText");
+        this.rewardDetail = document.getElementById("loginRewardDetail");
+        this.stamp = document.getElementById("loginStamp");
+        this.closeBtn = document.getElementById("loginCloseBtn");
+        this.closeBtn.addEventListener("click", () => this.hide());
+      }
+
+      buildReward() {
+        const rewards = [
+          { type: "umami", amount: 5000, text: "旨味ポイント大量獲得", detail: "旨味ポイント +5000" },
+          { type: "umami", amount: 12000, text: "神味ボーナス", detail: "旨味ポイント +12000" },
+          { type: "rate", amount: 1, text: "レア出現率アップ", detail: "今回の起動中、レア補正を少し強化" },
+          { type: "todaygod", amount: 1, text: "本日限定強化ゴット", detail: "今日の神の効果が強化されます" }
+        ];
+        return Util.randomChoice(rewards);
+      }
+
+      show(reward, onApplyReward) {
+        this.popupController.showDim();
+        this.board.classList.remove("hidden", "hide");
+        this.board.classList.add("show");
+        this.rewardText.textContent = reward.text;
+        this.rewardDetail.textContent = reward.detail;
+        this.stamp.classList.remove("hit");
+        this.stamp.style.opacity = "0";
+
+        setTimeout(() => {
+          this.stamp.classList.add("hit");
+          this.audio.stamp();
+          onApplyReward?.(reward);
+          this.spawnRewardBurst();
+        }, 420);
+      }
+
+      hide() {
+        this.board.classList.remove("show");
+        this.board.classList.add("hide");
+        setTimeout(() => {
+          this.board.classList.add("hidden");
+          this.board.classList.remove("hide");
+          this.popupController.hideDimIfPossible();
+        }, 300);
+      }
+
+      spawnRewardBurst() {
+        const icons = ["✨", "🍙", "🍵", "🍜", "💮", "🌟"];
+        for (let i = 0; i < 8; i++) {
+          const node = document.createElement("div");
+          node.className = "reward-burst";
+          node.textContent = icons[i % icons.length];
+          node.style.left = "50%";
+          node.style.top = "32%";
+          const tx = (Math.random() * 220 - 110).toFixed(0) + "px";
+          const ty = (-40 - Math.random() * 120).toFixed(0) + "px";
+          node.style.setProperty("--tx", tx);
+          node.style.setProperty("--ty", ty);
+          document.getElementById("app").appendChild(node);
+          setTimeout(() => node.remove(), 850);
+        }
+      }
+    }
+
+    class BoardAreaManager {
+      constructor(boardEl, godDb, popupController, audio) {
+        this.boardEl = boardEl;
+        this.godDb = godDb;
+        this.popupController = popupController;
+        this.audio = audio;
+        this.instances = [];
+        this.uidCounter = 1;
+        this.elements = new Map();
+        this.longPressTimer = null;
+        this.longPressRing = null;
+        this.onDragEnd = null;
+      }
+
+      setInstances(rawInstances) {
+        this.instances = rawInstances.map(r => new GodInstance(r.uid, r.godId, r.x, r.y));
+        this.uidCounter = Math.max(1, ...this.instances.map(i => i.uid + 1));
+        this.renderAll();
+      }
+
+      serialize() {
+        return this.instances.map(i => ({
+          uid: i.uid,
+          godId: i.godId,
+          x: i.x,
+          y: i.y
+        }));
+      }
+
+      addGod(godId, x = null, y = null) {
+        const rect = this.boardEl.getBoundingClientRect();
+        const nx = x !== null ? x : 60 + Math.random() * Math.max(60, rect.width - 120);
+        const ny = y !== null ? y : 60 + Math.random() * Math.max(80, rect.height - 120);
+        const inst = new GodInstance(this.uidCounter++, godId, nx, ny);
+        this.instances.push(inst);
+        this.createElement(inst);
+        this.audio.place();
+        return inst;
+      }
+
+      removeByUid(uid) {
+        const idx = this.instances.findIndex(i => i.uid === uid);
+        if (idx >= 0) this.instances.splice(idx, 1);
+        const el = this.elements.get(uid);
+        if (el) el.remove();
+        this.elements.delete(uid);
+      }
+
+      getByUid(uid) {
+        return this.instances.find(i => i.uid === uid);
+      }
+
+      renderAll() {
+        this.boardEl.querySelectorAll(".god, .synergy-line, .synergy-label").forEach(el => el.remove());
+        this.elements.clear();
+        this.instances.forEach(inst => this.createElement(inst));
+      }
+
+      clearSynergyLines() {
+        this.boardEl.querySelectorAll(".synergy-line").forEach(el => el.remove());
+      }
+
+      drawSynergyLines(activePairs) {
+        this.clearSynergyLines();
+        activePairs.forEach(pair => {
+          const line = document.createElement("div");
+          line.className = "synergy-line";
+          const dx = pair.bx - pair.ax;
+          const dy = pair.by - pair.ay;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+          line.style.left = pair.ax + "px";
+          line.style.top = pair.ay + "px";
+          line.style.width = len + "px";
+          line.style.transform = "rotate(" + angle + "deg)";
+          this.boardEl.appendChild(line);
+        });
+      }
+
+      showSynergyLabel(name, x, y) {
+        const label = document.createElement("div");
+        label.className = "synergy-label";
+        label.textContent = name;
+        label.style.left = x + "px";
+        label.style.top = y + "px";
+        this.boardEl.appendChild(label);
+        setTimeout(() => label.remove(), 1250);
+      }
+
+      createElement(inst) {
+        const god = this.godDb.get(inst.godId);
+        const el = document.createElement("div");
+        el.className = "god place-bounce";
+        if (god.rarity === "Secret") el.classList.add("god-secret");
+        el.dataset.uid = String(inst.uid);
+        el.style.left = (inst.x - 39) + "px";
+        el.style.top = (inst.y - 45) + "px";
+
+        const aura = document.createElement("div");
+        aura.className = "aura";
+        aura.style.background = god.rarity === "Secret"
+          ? "radial-gradient(circle, " + god.auraColor + " 0%, transparent 70%)"
+          : "radial-gradient(circle, " + god.auraColor + " 0%, transparent 72%)";
+        if (god.rarity === "Common") aura.style.opacity = "0.15";
+        if (god.rarity === "Rare") aura.style.opacity = "0.2";
+        if (god.rarity === "UltraRare") aura.style.opacity = "0.28";
+        if (god.rarity === "Secret") aura.style.opacity = "0.38";
+        el.appendChild(aura);
+
+        const imagePath = "images/" + god.imageKey + ".png";
+        const img = document.createElement("img");
+        img.className = "god-img hidden";
+        img.src = imagePath;
+        img.alt = god.name;
+
+        const emoji = document.createElement("div");
+        emoji.className = "god-emoji";
+        emoji.textContent = god.emojiFallback;
+
+        img.onload = () => {
+          img.classList.remove("hidden");
+          emoji.classList.add("hidden");
+        };
+        img.onerror = () => {
+          img.classList.add("hidden");
+          emoji.classList.remove("hidden");
+        };
+
+        el.appendChild(img);
+        el.appendChild(emoji);
+
+        const name = document.createElement("div");
+        name.className = "god-name";
+        name.textContent = god.name;
+        el.appendChild(name);
+
+        const rarity = document.createElement("div");
+        rarity.className = "god-rarity rarity-" + god.rarity.toLowerCase();
+        rarity.textContent = god.rarity;
+        el.appendChild(rarity);
+
+        this.bindDrag(el, inst);
+        this.boardEl.appendChild(el);
+        this.elements.set(inst.uid, el);
+
+        setTimeout(() => el.classList.remove("place-bounce"), 300);
+      }
+
+      updatePosition(inst) {
+        const el = this.elements.get(inst.uid);
+        if (!el) return;
+        el.style.left = (inst.x - 39) + "px";
+        el.style.top = (inst.y - 45) + "px";
+      }
+
+      bindDrag(el, inst) {
+        let dragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        let highlightUid = null;
+
+        const clearLongPress = () => {
+          clearTimeout(this.longPressTimer);
+          this.longPressTimer = null;
+          if (this.longPressRing) {
+            this.longPressRing.remove();
+            this.longPressRing = null;
+          }
+        };
+
+        const showLongPressRing = (x, y) => {
+          clearLongPress();
+          const ring = document.createElement("div");
+          ring.className = "longpress-ring";
+          ring.style.left = (x - 32) + "px";
+          ring.style.top = (y - 32) + "px";
+          document.getElementById("app").appendChild(ring);
+          this.longPressRing = ring;
+        };
+
+        el.addEventListener("pointerdown", (e) => {
+          e.preventDefault();
+          const rect = el.getBoundingClientRect();
+          offsetX = e.clientX - rect.left;
+          offsetY = e.clientY - rect.top;
+
+          const boardRect = this.boardEl.getBoundingClientRect();
+          showLongPressRing(e.clientX - boardRect.left + boardRect.left, e.clientY - boardRect.top + boardRect.top);
+
+          this.longPressTimer = setTimeout(() => {
+            clearLongPress();
+            const god = this.godDb.get(inst.godId);
+            window.game.showGodDetail(god);
+          }, 550);
+
+          el.setPointerCapture(e.pointerId);
+        });
+
+        el.addEventListener("pointermove", (e) => {
+          const boardRect = this.boardEl.getBoundingClientRect();
+          const movedEnough = Math.abs((e.clientX - boardRect.left) - inst.x) > 6 || Math.abs((e.clientY - boardRect.top) - inst.y) > 6;
+          if (movedEnough) clearLongPress();
+
+          if (!dragging) dragging = true;
+          el.classList.add("dragging");
+
+          let x = e.clientX - boardRect.left - offsetX + 39;
+          let y = e.clientY - boardRect.top - offsetY + 45;
+          x = Util.clamp(x, 39, boardRect.width - 39);
+          y = Util.clamp(y, 45, boardRect.height - 45);
+
+          inst.x = x;
+          inst.y = y;
+          this.updatePosition(inst);
+
+          highlightUid = null;
+          this.instances.forEach(other => {
+            const otherEl = this.elements.get(other.uid);
+            if (other.uid === inst.uid) return;
+            otherEl?.classList.remove("highlight");
+            if (window.game.mergeSystem.canMerge(inst, other)) {
+              const d = Util.dist(inst.x, inst.y, other.x, other.y);
+              if (d < 70) {
+                highlightUid = other.uid;
+                otherEl?.classList.add("highlight");
+              }
+            }
+          });
+        });
+
+        const finish = () => {
+          clearLongPress();
+          if (!dragging) return;
+          dragging = false;
+          el.classList.remove("dragging");
+
+          this.instances.forEach(other => {
+            const otherEl = this.elements.get(other.uid);
+            otherEl?.classList.remove("highlight");
+          });
+
+          if (highlightUid !== null) {
+            this.onDragEnd?.(inst.uid, highlightUid);
+          } else {
+            this.audio.place();
+          }
+        };
+
+        el.addEventListener("pointerup", finish);
+        el.addEventListener("pointercancel", finish);
+      }
+    }
+
+    class GameManager {
+      constructor() {
+        this.audio = new AudioManager();
+        this.popupController = new PopupController(document.getElementById("screenDim"));
+        this.godDb = new GodDatabase();
+        this.synergySystem = new SynergySystem();
+        this.mergeSystem = new MergeSystem(this.godDb);
+        this.gachaSystem = new GachaSystem(this.godDb);
+        this.currencyUI = new CurrencyUIController();
+        this.rareEffect = new RareEffectController(this.audio);
+        this.loginBonusController = new LoginBonusController(this.audio, this.popupController);
+        this.boardManager = new BoardAreaManager(document.getElementById("boardArea"), this.godDb, this.popupController, this.audio);
+
+        this.currency = 0;
+        this.yen = this.gachaSystem.initialYen;
+        this.baseTap = 1;
+        this.productionPerSec = 0;
+        this.synergyMultiplier = 1;
+        this.loginRareBoost = false;
+        this.todayGodBoost = false;
+
+        this.lastTickTime = performance.now();
+        this.lastSaveTime = Date.now();
+        this.lastSynergySignature = "";
+
+        this.titleScreen = document.getElementById("titleScreen");
+        this.gameScreen = document.getElementById("gameScreen");
+        this.tapArea = document.getElementById("tapArea");
+        this.tapCore = document.getElementById("tapCore");
+
+        this.mergePopup = document.getElementById("mergePopup");
+        this.mergeResultImg = document.getElementById("mergeResultImg");
+        this.mergeResultEmoji = document.getElementById("mergeResultEmoji");
+        this.mergeResultName = document.getElementById("mergeResultName");
+
+        this.detailPopup = document.getElementById("detailPopup");
+        this.noticePopup = document.getElementById("noticePopup");
+        this.challengePopup = document.getElementById("challengePopup");
+
+        this.bindUI();
+        this.loadGame();
+        this.refreshBanner();
+        this.recalculateStats();
+        this.startLoop();
+      }
+
+      bindUI() {
+        ButtonFeedback.bindAll(this.audio);
+
+        document.getElementById("startBtn").addEventListener("click", () => this.enterGame());
+        document.getElementById("noticeBtn").addEventListener("click", () => this.popupController.show(this.noticePopup));
+        document.getElementById("challengeBtn").addEventListener("click", () => this.popupController.show(this.challengePopup));
+        document.getElementById("resetBtn").addEventListener("click", () => {
+          SaveManager.clear();
+          location.reload();
+        });
+
+        document.getElementById("noticeCloseBtn").addEventListener("click", () => this.popupController.hide(this.noticePopup));
+        document.getElementById("challengeCloseBtn").addEventListener("click", () => this.popupController.hide(this.challengePopup));
+        document.getElementById("detailCloseBtn").addEventListener("click", () => this.popupController.hide(this.detailPopup));
+        document.getElementById("mergeCloseBtn").addEventListener("click", () => this.popupController.hide(this.mergePopup));
+
+        document.getElementById("saveBtn").addEventListener("click", () => this.saveGame());
+        document.getElementById("backTitleBtn").addEventListener("click", () => this.backToTitle());
+        document.getElementById("todayGodBtn").addEventListener("click", () => this.showTodayGodNotice());
+        document.getElementById("summonBtn").addEventListener("click", () => this.summon());
+
+        this.tapArea.addEventListener("pointerdown", (e) => this.handleTap(e));
+
+        this.boardManager.onDragEnd = (uidA, uidB) => this.tryMerge(uidA, uidB);
+
+        window.addEventListener("beforeunload", () => this.saveGame());
+      }
+
+      enterGame() {
+        this.titleScreen.classList.add("hidden");
+        this.gameScreen.classList.remove("hidden");
+        this.refreshBanner();
+
+        const todayKey = Util.todayKey();
+        const save = SaveManager.load();
+        const alreadyClaimed = save && save.lastLoginBonusDate === todayKey;
+        if (!alreadyClaimed) {
+          const reward = this.loginBonusController.buildReward();
+          this.rareEffect.flash();
+          setTimeout(() => {
+            this.loginBonusController.show(reward, (rw) => this.applyLoginReward(rw));
+            this.lastLoginBonusDate = todayKey;
+            this.saveGame();
+          }, 180);
+        }
+      }
+
+      backToTitle() {
+        this.gameScreen.classList.add("hidden");
+        this.titleScreen.classList.remove("hidden");
+      }
+
+      showTodayGodNotice() {
+        const popup = this.noticePopup;
+        popup.querySelector(".popup-header").textContent = "今日の神";
+        popup.querySelector(".notice-text").innerHTML =
+          "本日の強化ゴットは <b>ラーメン神</b> です。<br />" +
+          "ラーメン系の生産量が少し上昇します。<br />" +
+          "将来は日替わりローテーションに拡張可能です。";
+        this.popupController.show(popup);
+      }
+
+      handleTap(e) {
+        this.audio.tap();
+        this.tapCore.classList.add("tapped");
+        setTimeout(() => this.tapCore.classList.remove("tapped"), 80);
+
+        const gain = this.getTapGain();
+        this.currency += gain;
+        this.currencyUI.setCurrency(this.currency);
+        this.spawnFloatingNumber(e.clientX, e.clientY, "+" + Util.formatNumber(gain), gain >= 100 ? "#b236f2" : "#8b4e00");
+        this.rareEffect.flash();
+      }
+
+      getTapGain() {
+        let total = this.baseTap;
+        this.boardManager.instances.forEach(inst => {
+          const god = this.godDb.get(inst.godId);
+          total += god.tapBonus;
+          if (this.todayGodBoost && god.id.includes("ramen")) total += Math.floor(god.tapBonus * 0.5);
+        });
+        total *= this.synergyMultiplier;
+        return Math.floor(total);
+      }
+
+      calculateProduction() {
+        let total = 0;
+        this.boardManager.instances.forEach(inst => {
+          const god = this.godDb.get(inst.godId);
+          let value = god.baseProduction;
+          if (this.todayGodBoost && god.id.includes("ramen")) value *= 1.25;
+          if (god.rarity === "Secret") value *= 1.15;
+          total += value;
+        });
+
+        const secretCount = this.boardManager.instances.filter(inst => this.godDb.get(inst.godId).rarity === "Secret").length;
+        if (secretCount > 0) {
+          total *= 1 + secretCount * 0.15;
+        }
+
+        total *= this.synergyMultiplier;
+        return total;
+      }
+
+      recalculateStats() {
+        const synergy = this.synergySystem.calculate(this.boardManager.instances, this.godDb);
+        this.synergyMultiplier = synergy.multiplier;
+        this.productionPerSec = this.calculateProduction();
+
+        this.currencyUI.setProduction(this.productionPerSec);
+        this.currencyUI.setTap(this.getTapGain());
+        this.currencyUI.setSynergy(this.synergyMultiplier);
+
+        this.boardManager.drawSynergyLines(synergy.activePairs);
+
+        const signature = synergy.activePairs.map(p => p.name + ":" + p.aUid + "-" + p.bUid).sort().join("|");
+        if (signature && signature !== this.lastSynergySignature) {
+          const seen = new Set();
+          synergy.activePairs.forEach(pair => {
+            if (seen.has(pair.name)) return;
+            seen.add(pair.name);
+            this.boardManager.showSynergyLabel(pair.name, (pair.ax + pair.bx) / 2, (pair.ay + pair.by) / 2);
+          });
+        }
+        this.lastSynergySignature = signature;
+      }
+
+      spawnFloatingNumber(clientX, clientY, text, color = "#8b4e00") {
+        const node = document.createElement("div");
+        node.className = "floating-number";
+        node.textContent = text;
+        node.style.left = clientX + "px";
+        node.style.top = clientY + "px";
+        node.style.color = color;
+        node.style.fontSize = text.length > 6 ? "20px" : "24px";
+        document.getElementById("app").appendChild(node);
+        setTimeout(() => node.remove(), 850);
+      }
+
+      refreshBanner() {
+        const banner = this.gachaSystem.getCurrentBanner();
+        document.getElementById("gachaTitle").textContent = banner.title;
+        document.getElementById("gachaDesc").textContent = banner.description;
+        document.getElementById("gachaCost").textContent = Util.formatYen(banner.cost);
+        document.getElementById("gachaCover").src = "images/" + banner.imageKey + ".png";
+      }
+
+      summon() {
+        const banner = this.gachaSystem.getCurrentBanner();
+        if (this.yen < banner.cost) {
+          this.popupController.show(this.noticePopup);
+          this.noticePopup.querySelector(".popup-header").textContent = "所持金不足";
+          this.noticePopup.querySelector(".notice-text").innerHTML =
+            "このガチャには <b>" + Util.formatYen(banner.cost) + "</b> 必要です。<br />" +
+            "現在の所持金は <b>" + Util.formatYen(this.yen) + "</b> です。";
+          return;
+        }
+
+        this.yen -= banner.cost;
+        this.currencyUI.setYen(this.yen);
+
+        let result = this.gachaSystem.summon();
+        if (this.loginRareBoost && Math.random() < 0.25) {
+          const boosted = banner.pool.filter(p => {
+            const g = this.godDb.get(p.godId);
+            return g.rarity === "Rare" || g.rarity === "UltraRare";
+          });
+          if (boosted.length > 0) {
+            result = { banner, god: this.godDb.get(Util.chance(boosted).godId) };
+          }
+        }
+
+        this.rareEffect.playSummon(result.god.rarity);
+        const inst = this.boardManager.addGod(result.god.id);
+        if (result.god.rarity === "UltraRare" || result.god.rarity === "Secret") {
+          this.boardManager.showSynergyLabel(result.god.name + " 出現", inst.x, inst.y - 38);
+        }
+        this.recalculateStats();
+        this.saveGame();
+      }
+
+      tryMerge(uidA, uidB) {
+        const a = this.boardManager.getByUid(uidA);
+        const b = this.boardManager.getByUid(uidB);
+        if (!this.mergeSystem.canMerge(a, b)) {
+          this.recalculateStats();
+          return;
+        }
+
+        const result = this.mergeSystem.merge(a, b);
+        if (!result) return;
+
+        this.boardManager.removeByUid(a.uid);
+        this.boardManager.removeByUid(b.uid);
+        const newInst = this.boardManager.addGod(result.newGodId, result.x, result.y);
+
+        this.rareEffect.playMerge(result.data.rarity);
+        this.showMergePopup(result.data);
+        this.boardManager.showSynergyLabel("進化!", newInst.x, newInst.y - 40);
+
+        setTimeout(() => {
+          this.recalculateStats();
+          this.saveGame();
+        }, 80);
+      }
+
+      showMergePopup(god) {
+        const imgPath = "images/" + god.imageKey + ".png";
+        this.mergeResultImg.classList.add("hidden");
+        this.mergeResultEmoji.classList.add("hidden");
+
+        this.mergeResultImg.src = imgPath;
+        this.mergeResultImg.onload = () => {
+          this.mergeResultImg.classList.remove("hidden");
+          this.mergeResultEmoji.classList.add("hidden");
+        };
+        this.mergeResultImg.onerror = () => {
+          this.mergeResultImg.classList.add("hidden");
+          this.mergeResultEmoji.classList.remove("hidden");
+          this.mergeResultEmoji.textContent = god.emojiFallback;
+        };
+        this.mergeResultName.textContent = god.name;
+        this.popupController.show(this.mergePopup);
+      }
+
+      showGodDetail(god) {
+        const detailImg = document.getElementById("detailImg");
+        const detailEmoji = document.getElementById("detailEmoji");
+        const detailList = document.getElementById("detailList");
+
+        detailImg.classList.add("hidden");
+        detailEmoji.classList.add("hidden");
+
+        detailImg.src = "images/" + god.imageKey + ".png";
+        detailImg.onload = () => {
+          detailImg.classList.remove("hidden");
+          detailEmoji.classList.add("hidden");
+        };
+        detailImg.onerror = () => {
+          detailImg.classList.add("hidden");
+          detailEmoji.classList.remove("hidden");
+          detailEmoji.textContent = god.emojiFallback;
+        };
+
+        detailList.innerHTML =
+          "<b>名前:</b> " + god.name + "<br />" +
+          "<b>レア:</b> " + god.rarity + "<br />" +
+          "<b>ランク:</b> " + god.rank + "<br />" +
+          "<b>生産量:</b> " + Util.formatNumber(god.baseProduction) + "/秒<br />" +
+          "<b>タップ補正:</b> +" + Util.formatNumber(god.tapBonus) + "<br />" +
+          "<b>タグ:</b> " + god.synergyTags.join(", ") + "<br />" +
+          "<b>進化先:</b> " + (god.evolveTo ? this.godDb.get(god.evolveTo)?.name || god.evolveTo : "なし");
+
+        this.popupController.show(this.detailPopup);
+      }
+
+      applyLoginReward(reward) {
+        if (reward.type === "umami") {
+          this.currency += reward.amount;
+          this.currencyUI.setCurrency(this.currency);
+        } else if (reward.type === "rate") {
+          this.loginRareBoost = true;
+        } else if (reward.type === "todaygod") {
+          this.todayGodBoost = true;
+        }
+        this.recalculateStats();
+      }
+
+      loadGame() {
+        const data = SaveManager.load();
+        if (!data) {
+          this.currency = 0;
+          this.yen = this.gachaSystem.initialYen;
+          this.boardManager.setInstances([]);
+          this.currencyUI.setCurrency(this.currency);
+          this.currencyUI.setYen(this.yen);
+          this.lastLoginBonusDate = null;
+          return;
+        }
+
+        this.currency = data.currency || 0;
+        this.yen = Number.isFinite(data.yen) ? data.yen : this.gachaSystem.initialYen;
+        this.loginRareBoost = !!data.loginRareBoost;
+        this.todayGodBoost = !!data.todayGodBoost;
+        this.lastLoginBonusDate = data.lastLoginBonusDate || null;
+
+        this.boardManager.setInstances(data.instances || []);
+        this.recalculateStats();
+
+        const offlineReward = SaveManager.calcOfflineReward(data.lastSaveTime || Date.now(), this.productionPerSec);
+        if (offlineReward > 0) {
+          this.currency += offlineReward;
+          this.popupController.show(this.noticePopup);
+          this.noticePopup.querySelector(".popup-header").textContent = "オフライン報酬";
+          this.noticePopup.querySelector(".notice-text").innerHTML =
+            "不在中の神域生産により、<br /><b>" + Util.formatNumber(offlineReward) + "</b> 旨味ポイントを獲得しました。";
+        }
+
+        this.currencyUI.setCurrency(this.currency);
+        this.currencyUI.setYen(this.yen);
+      }
+
+      saveGame() {
+        SaveManager.save({
+          currency: this.currency,
+          yen: this.yen,
+          instances: this.boardManager.serialize(),
+          loginRareBoost: this.loginRareBoost,
+          todayGodBoost: this.todayGodBoost,
+          lastLoginBonusDate: this.lastLoginBonusDate || null,
+          lastSaveTime: Date.now()
+        });
+      }
+
+      startLoop() {
+        const loop = (now) => {
+          const dt = (now - this.lastTickTime) / 1000;
+          this.lastTickTime = now;
+
+          const gain = this.productionPerSec * dt;
+          if (gain > 0) {
+            this.currency += gain;
+          }
+
+          this.currencyUI.setCurrency(this.currency);
+          this.refreshBanner();
+
+          if (Date.now() - this.lastSaveTime > 10000) {
+            this.saveGame();
+            this.lastSaveTime = Date.now();
+          }
+
+          this.recalculateStats();
+
+          requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      window.game = new GameManager();
+    });
+  </script>
+</body>
+</html>
